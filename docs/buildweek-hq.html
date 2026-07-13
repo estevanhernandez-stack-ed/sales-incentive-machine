@@ -1,0 +1,408 @@
+<title>TableStakes — Build Week HQ</title>
+<style>
+  :root {
+    --paper: #FBFAF7;
+    --panel: #FFFFFF;
+    --panel-2: #F3F0E8;
+    --ink: #23201B;
+    --ink-soft: #6B655A;
+    --line: #E2DDD2;
+    --accent: #0F6B5C;
+    --accent-ink: #FFFFFF;
+    --brass: #B08540;
+    --urgent: #B3382B;
+    --good: #2E7D4F;
+    --mono: ui-monospace, SFMono-Regular, Consolas, "Cascadia Mono", Menlo, monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --shadow: 0 1px 3px rgba(35,32,27,.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #141816;
+      --panel: #1C221E;
+      --panel-2: #232B26;
+      --ink: #E9E7E0;
+      --ink-soft: #9AA69E;
+      --line: #2E3833;
+      --accent: #3AA98F;
+      --accent-ink: #0E1512;
+      --brass: #C9A05C;
+      --urgent: #E06552;
+      --good: #5FBF8A;
+      --shadow: 0 1px 3px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="light"] {
+    --paper: #FBFAF7; --panel: #FFFFFF; --panel-2: #F3F0E8; --ink: #23201B;
+    --ink-soft: #6B655A; --line: #E2DDD2; --accent: #0F6B5C; --accent-ink: #FFFFFF;
+    --brass: #B08540; --urgent: #B3382B; --good: #2E7D4F; --shadow: 0 1px 3px rgba(35,32,27,.08);
+  }
+  :root[data-theme="dark"] {
+    --paper: #141816; --panel: #1C221E; --panel-2: #232B26; --ink: #E9E7E0;
+    --ink-soft: #9AA69E; --line: #2E3833; --accent: #3AA98F; --accent-ink: #0E1512;
+    --brass: #C9A05C; --urgent: #E06552; --good: #5FBF8A; --shadow: 0 1px 3px rgba(0,0,0,.35);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--sans); line-height: 1.55; font-size: 15px;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px 80px; }
+
+  /* ---- top bar ---- */
+  .topbar {
+    position: sticky; top: 0; z-index: 10;
+    background: var(--paper); border-bottom: 1px solid var(--line);
+    padding: 12px 20px;
+  }
+  .topbar-inner {
+    max-width: 1080px; margin: 0 auto;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px;
+  }
+  .brand { font-family: var(--mono); font-weight: 700; font-size: 15px; letter-spacing: .02em; }
+  .brand small { color: var(--ink-soft); font-weight: 400; }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; padding: 4px 10px;
+    border: 1px solid var(--line); border-radius: 3px; background: var(--panel);
+    font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+  .chip b { font-weight: 700; }
+  .chip.urgent { border-color: var(--urgent); color: var(--urgent); }
+  .chip.done { border-color: var(--good); color: var(--good); }
+
+  h1, h2, h3 { text-wrap: balance; line-height: 1.2; }
+  h2 { font-size: 13px; font-family: var(--mono); text-transform: uppercase;
+       letter-spacing: .12em; color: var(--ink-soft); font-weight: 600; margin: 0 0 12px; }
+
+  /* ---- tonight panel ---- */
+  .tonight {
+    margin-top: 28px; border: 2px solid var(--accent); border-radius: 6px;
+    background: var(--panel); box-shadow: var(--shadow); overflow: hidden;
+  }
+  .tonight-head {
+    background: var(--accent); color: var(--accent-ink);
+    padding: 8px 16px; font-family: var(--mono); font-size: 12px;
+    letter-spacing: .12em; text-transform: uppercase; font-weight: 700;
+    display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  }
+  .tonight-body { padding: 16px 20px 20px; }
+  .tonight-body h3 { margin: 0 0 6px; font-size: 20px; }
+  .tonight-body p { margin: 0 0 10px; max-width: 65ch; color: var(--ink-soft); }
+
+  /* ---- layout ---- */
+  .cols { display: grid; grid-template-columns: 1fr 320px; gap: 28px; margin-top: 36px; align-items: start; }
+  @media (max-width: 900px) { .cols { grid-template-columns: 1fr; } }
+
+  /* ---- ticket rail ---- */
+  .rail { display: flex; flex-direction: column; gap: 14px; }
+  .ticket {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 6px;
+    box-shadow: var(--shadow); overflow: hidden;
+  }
+  .ticket.today { border-color: var(--accent); border-width: 2px; }
+  .ticket.past { opacity: .62; }
+  .ticket-head {
+    display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+    padding: 10px 16px; border-bottom: 1px dashed var(--line);
+    font-family: var(--mono); font-size: 13px;
+  }
+  .ticket-date { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .ticket-focus { color: var(--ink-soft); }
+  .tag {
+    margin-left: auto; font-size: 11px; padding: 2px 8px; border-radius: 3px;
+    letter-spacing: .08em; text-transform: uppercase;
+  }
+  .tag.now { background: var(--accent); color: var(--accent-ink); font-weight: 700; }
+  .tag.gate { border: 1px solid var(--urgent); color: var(--urgent); }
+  .ticket-body { padding: 12px 16px 14px; }
+  .tasks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+  .tasks label { display: flex; gap: 9px; align-items: baseline; cursor: pointer; }
+  .tasks input { accent-color: var(--accent); transform: translateY(1px); }
+  .tasks input:checked + span { color: var(--ink-soft); text-decoration: line-through; }
+
+  details.prompt { margin-top: 12px; border-top: 1px dashed var(--line); padding-top: 10px; }
+  details.prompt summary {
+    cursor: pointer; font-family: var(--mono); font-size: 12px;
+    color: var(--accent); letter-spacing: .06em; user-select: none;
+  }
+  details.prompt summary::marker { color: var(--brass); }
+  .prompt-box {
+    margin-top: 10px; background: var(--panel-2); border: 1px solid var(--line);
+    border-radius: 4px; padding: 12px 14px; position: relative;
+  }
+  .prompt-box pre {
+    margin: 0; font-family: var(--mono); font-size: 12.5px; line-height: 1.55;
+    white-space: pre-wrap; word-break: break-word;
+  }
+  .copy-btn {
+    position: absolute; top: 8px; right: 8px;
+    font-family: var(--mono); font-size: 11px; padding: 4px 10px;
+    background: var(--accent); color: var(--accent-ink); border: none;
+    border-radius: 3px; cursor: pointer; font-weight: 700;
+  }
+  .copy-btn:hover { filter: brightness(1.08); }
+  .copy-btn:focus-visible, .tasks input:focus-visible, details.prompt summary:focus-visible, a:focus-visible {
+    outline: 2px solid var(--brass); outline-offset: 2px;
+  }
+
+  /* ---- side rail ---- */
+  .side { display: flex; flex-direction: column; gap: 22px; position: sticky; top: 76px; }
+  @media (max-width: 900px) { .side { position: static; } }
+  .card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 6px;
+    box-shadow: var(--shadow); padding: 14px 16px;
+  }
+  .card ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 7px; font-size: 13.5px; }
+  .card ul.rules li { padding-left: 14px; position: relative; }
+  .card ul.rules li::before { content: "—"; position: absolute; left: 0; color: var(--brass); }
+  .card .mono { font-family: var(--mono); font-size: 12px; }
+  .arc { margin: 0; padding: 0; list-style: none; font-size: 13px; display: flex; flex-direction: column; gap: 5px; }
+  .arc li { display: flex; gap: 10px; }
+  .arc .t { font-family: var(--mono); color: var(--brass); min-width: 34px; text-align: right; font-variant-numeric: tabular-nums; }
+  .links a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--line); }
+  .links a:hover { border-bottom-color: var(--accent); }
+  .pathrow { display: flex; align-items: center; gap: 8px; }
+  .pathrow code {
+    font-family: var(--mono); font-size: 11.5px; background: var(--panel-2);
+    padding: 3px 7px; border-radius: 3px; overflow-x: auto; white-space: nowrap; flex: 1;
+  }
+  .mini-copy {
+    font-family: var(--mono); font-size: 10px; padding: 3px 7px; flex-shrink: 0;
+    background: transparent; border: 1px solid var(--line); color: var(--ink-soft);
+    border-radius: 3px; cursor: pointer;
+  }
+  .mini-copy:hover { color: var(--accent); border-color: var(--accent); }
+
+  .footer-note { margin-top: 44px; text-align: center; font-family: var(--mono); font-size: 11.5px; color: var(--ink-soft); }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">TABLESTAKES <small>· Build Week HQ · Work &amp; productivity</small></div>
+    <div class="chips">
+      <span class="chip" id="chip-credits">credits gate —</span>
+      <span class="chip urgent" id="chip-deadline">deadline —</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="tonight">
+    <div class="tonight-head"><span id="tonight-label">Tonight's mission</span><span id="tonight-date"></span></div>
+    <div class="tonight-body">
+      <h3 id="tonight-title">—</h3>
+      <p id="tonight-desc">—</p>
+      <p class="mono" style="font-family:var(--mono);font-size:12px;color:var(--brass);margin:0;">
+        Jump to the ticket below for tasks + the Codex handoff prompt. End every session with /feedback → paste the ID into SUBMISSION.md.
+      </p>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div>
+      <h2>The rail — 9 tickets to submission</h2>
+      <div class="rail" id="rail"></div>
+    </div>
+
+    <div class="side">
+      <div class="card">
+        <h2>Hard rules</h2>
+        <ul class="rules">
+          <li><b>Zero-config is sacred:</b> <span class="mono">npm install &amp;&amp; npm run seed &amp;&amp; npm run dev</span> must always work on a fresh clone.</li>
+          <li><b>No-key fallback never breaks.</b> Contest Designer degrades to the canned config, not an error.</li>
+          <li><b>No secrets in the repo.</b> Key lives in <span class="mono">.env.local</span> only.</li>
+          <li><b>Cut line = Contest Designer.</b> If the week compresses, it goes first — rules don't require it.</li>
+          <li><b>Capture /feedback session IDs</b> as you go. The core-functionality one is a required submission field.</li>
+          <li><b>Fake data only.</b> Nothing employer-flavored, ever.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>Submission checklist</h2>
+        <ul class="tasks" id="submit-list"></ul>
+      </div>
+
+      <div class="card">
+        <h2>Demo video arc — under 3:00</h2>
+        <ul class="arc">
+          <li><span class="t">0:00</span><span>Problem: contests are spreadsheet chaos</span></li>
+          <li><span class="t">0:10</span><span>Type goal into Contest Designer → config appears</span></li>
+          <li><span class="t">0:40</span><span>Dashboard: leaderboard, badges, qualifiers</span></li>
+          <li><span class="t">1:10</span><span>Print a bingo card on camera, hold it up</span></li>
+          <li><span class="t">1:30</span><span>Log a turned-in card → entries tick up</span></li>
+          <li><span class="t">1:50</span><span>TV mode: wheel spins, winner banner</span></li>
+          <li><span class="t">2:20</span><span>End card: built with Codex + GPT-5.6</span></li>
+        </ul>
+      </div>
+
+      <div class="card links">
+        <h2>Links &amp; paths</h2>
+        <ul>
+          <li><a href="https://openai.devpost.com" target="_blank" rel="noopener">openai.devpost.com</a> — register, request credits, submit</li>
+          <li style="margin-top:6px;"><div class="pathrow"><code>C:\Users\estev\Projects\tablestakes</code><button class="mini-copy" data-copy="C:\Users\estev\Projects\tablestakes">copy</button></div></li>
+          <li><div class="pathrow"><code>docs\superpowers\specs\2026-07-13-tablestakes-design.md</code><button class="mini-copy" data-copy="docs\superpowers\specs\2026-07-13-tablestakes-design.md">copy</button></div></li>
+          <li style="color:var(--ink-soft);font-size:12.5px;margin-top:4px;">AGENTS.md is Codex's keystone — every prompt below assumes it reads that first.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <p class="footer-note">Checkboxes save to this browser. Open The Architect whenever you need the other shoulder.</p>
+</div>
+
+<script>
+(function () {
+  var STORE_KEY = 'ts-hq-v1';
+  var state = {};
+  try { state = JSON.parse(localStorage.getItem(STORE_KEY) || '{}'); } catch (e) { state = {}; }
+  function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {} }
+
+  var PREAMBLE = "Here's what I was thinking. Read AGENTS.md and docs/superpowers/specs/2026-07-13-tablestakes-design.md before writing any code — the spec defines the data model, exact metric formulas, and acceptance criteria. ";
+  var CODA = " Build to the spec's acceptance criteria. Before you finish: npm run seed on a clean tree, npm test green, no console errors on the pages you touched.";
+
+  var DAYS = [
+    { date: '2026-07-13', label: 'Mon 7/13', focus: 'Setup + scaffold', gate: false,
+      desc: 'Get the tools in hand and the skeleton standing. No feature work tonight — just make Codex real.',
+      tasks: ['Register on Devpost', 'Request free credits (gate: Fri noon PT)', 'Install Codex + sign in', 'Watch launch livestream / replay', 'First Codex session: scaffold the app', 'Log session ID in SUBMISSION.md'],
+      prompt: PREAMBLE + "Scaffold the app per the spec's Stack section: Next.js App Router + TypeScript + Tailwind, better-sqlite3, Vitest. Set up npm run dev / seed / test scripts (seed can be a stub tonight), the data/ + seed/ directories, .env.local support with OPENAI_API_KEY optional. No features yet — I want a clean skeleton where every command in AGENTS.md works." + CODA },
+    { date: '2026-07-14', label: 'Tue 7/14', focus: 'Seed + data model + metrics', gate: false,
+      desc: 'The whole fake universe: menu, servers, four weeks of checks. Metric queries with unit tests — this is the foundation everything reads from.',
+      tasks: ['Schema: 8 tables per spec', 'Deterministic seed script (menu, 12 servers, 4 weeks of checks)', 'Metric queries: PPA, per-check, alcohol %, item counts, large-party', 'Unit tests on metric math', 'Session ID logged'],
+      prompt: PREAMBLE + "Build the database layer and seed script per the spec's Data model and Seed script sections. Eight tables, exact fields as specified. Deterministic seed (fixed RNG): ~40 menu items across all six categories, 12 servers with personality (some oversell cocktails, some never sell desserts), 4 weeks of checks. Implement the five metric queries using the spec's exact formulas, in lib/db/ as one typed function per query, with Vitest unit tests against hand-computed values." + CODA },
+    { date: '2026-07-15', label: 'Wed 7/15', focus: 'Dashboard', gate: false,
+      desc: 'The leaderboard with metric toggles, deltas vs house average, and qualification badges. First screen judges see.',
+      tasks: ['Leaderboard with metric toggle', 'Delta vs house average per row', 'Qualification badges per contest goal', 'Active contest banner', 'Session ID logged'],
+      prompt: PREAMBLE + "Build the dashboard at / per spec feature 1. Leaderboard of all servers with a metric toggle (PPA / per-check / alcohol % / item counts), each row showing the value, delta vs house average, and qualification badges for the active contest's goals. Active contest banner on top: name, goals, prize, days remaining. Toggling metrics reorders the board. Numbers must match the tested metric queries — read from lib/db/, never recompute inline." + CODA },
+    { date: '2026-07-16', label: 'Thu 7/16', focus: 'Server Bingo', gate: false,
+      desc: 'Card generation, the print stylesheet, and submission logging. The printed card is money shot #1.',
+      tasks: ['5×5 card generator, FREE center, no dupes', 'Re-randomize per server', 'Print stylesheet: one clean card per page', 'Submission logging → entries awarded', 'Unit test: no duplicate items', 'Session ID logged'],
+      prompt: PREAMBLE + "Build Server Bingo at /bingo per spec feature 2. 5x5 cards, index 12 FREE, 24 unique items drawn from the active contest's bingo_pool, different random arrangement per card. Re-randomize button per server. Print stylesheet that renders ONE clean card per page: card name, server name, week — no nav, no buttons, legible at arm's length. Submission logging: manager marks completed cells, app computes lines (rows, cols, diagonals, FREE counts), awards entries per entry_rules, appends to the log. Unit-test the generator: never a duplicate item on a card." + CODA },
+    { date: '2026-07-17', label: 'Fri 7/17', focus: 'Prize wheel + TV mode', gate: true,
+      desc: 'Money shot #2. Entries auto-derive from qualifications + bingo lines; the wheel spins full-screen for the break room. Credits gate closes at noon PT today.',
+      tasks: ['CREDITS GATE: requested before noon PT?', 'Wheel auto-populates from entries', 'Full-screen TV mode', 'Animated spin (4–6s, decelerating) + winner banner', 'Drawing history with entries snapshot', 'Session ID logged'],
+      prompt: PREAMBLE + "Build the prize wheel at /wheel per spec feature 3. Wheel entries auto-derive per server: goals met + bingo lines, per the contest's entry_rules — more entries, more slices. Full-screen TV mode with big type readable across a break room. Animated spin, 4–6 seconds decelerating, landing weighted by entries; winner banner; save each drawing to wheel_drawings with an entries snapshot. Entry counts must reconcile exactly with the dashboard badges and logged bingo submissions." + CODA },
+    { date: '2026-07-18', label: 'Sat 7/18', focus: 'Contest Designer (GPT-5.6)', gate: false,
+      desc: 'The in-product AI: plain-English goal in, structured contest config out, everything downstream re-derives. The no-key fallback ships with it or it doesn’t ship.',
+      tasks: ['POST /api/contest-designer with structured output', 'Prompt includes menu + 4-week stats summary', 'Editable config review form → activate', 'No-key fallback: seed/fallback-contest.json', 'Session ID logged'],
+      prompt: PREAMBLE + "Build the Contest Designer at /contest per spec feature 4. POST /api/contest-designer sends the manager's plain-English goal plus the menu and a 4-week per-server stats summary to the OpenAI API (model from OPENAI_MODEL env, default gpt-5.6) with a JSON schema enforcing the spec's contest config shape — the model should weight the bingo_pool toward underselling items and set sensible thresholds. Manager reviews the config in an editable form, then activates it; dashboard badges, bingo pools, and wheel entries all re-derive. CRITICAL: with no OPENAI_API_KEY, return seed/fallback-contest.json labeled 'sample config (no API key)' — the app must never error without a key." + CODA },
+    { date: '2026-07-19', label: 'Sun 7/19', focus: 'Polish + README', gate: false,
+      desc: 'Design pass on the two money shots, seed-data texture so every screen has life, and the README judges will actually follow.',
+      tasks: ['Design polish: wheel + printed card first', 'Seed texture: every screen alive on first run', 'README: setup, seed, screenshots', 'License file', 'Full clean-clone dry run', 'Session ID logged'],
+      prompt: PREAMBLE + "Polish pass. Priority order: (1) the wheel TV mode and the printed bingo card — those two carry the demo video; (2) dashboard visual hierarchy; (3) empty states and console warnings. Then write the README for a judge: what it is, three-command setup (npm install && npm run seed && npm run dev), what the seed data contains, screenshots, and a note that OPENAI_API_KEY is optional with the fallback explained. Add a LICENSE (MIT). Finally simulate a fresh clone: delete node_modules and data/, run the three commands, confirm everything works." + CODA },
+    { date: '2026-07-20', label: 'Mon 7/20', focus: 'Video + dry run', gate: false,
+      desc: 'Record the 3-minute arc (side rail has the shot list), edit, upload public to YouTube. Submission dry run on Devpost.',
+      tasks: ['Record demo per the arc', 'Edit to <3:00, upload public YouTube', 'Repo public + final push', 'Devpost form dry run', 'Pick ⭐ core-functionality session ID'],
+      prompt: PREAMBLE + "Bug-fix and camera-ready session. I'm recording the demo today: walk the exact demo arc (contest designer → dashboard → print card → log submission → wheel spin) and fix anything that stutters — timing, spacing, empty states, print margins. No new features. Keep diffs small." + CODA },
+    { date: '2026-07-21', label: 'Tue 7/21', focus: 'SUBMIT — by noon PT', gate: true,
+      desc: 'Deadline is 5:00 PM PT. Target noon: five hours of buffer. Session ID goes in the form.',
+      tasks: ['Submit on Devpost by noon PT', 'Session ID ⭐ in the form', 'Category: Work and productivity', 'Confirm video is public', 'Breathe'],
+      prompt: null }
+  ];
+
+  var SUBMIT = [
+    'Devpost registration', 'Free credits requested (Fri 7/17 noon PT)', 'Codex installed + signed in',
+    'Public GitHub repo + license', 'README with setup + sample data', 'Demo video <3 min, public YouTube',
+    '⭐ core session ID confirmed', 'Submitted with buffer'
+  ];
+
+  function todayLocalISO() {
+    var d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  function esc(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  // ---- render rail ----
+  var today = todayLocalISO();
+  var rail = document.getElementById('rail');
+  DAYS.forEach(function (d, di) {
+    var cls = 'ticket' + (d.date === today ? ' today' : (d.date < today ? ' past' : ''));
+    var tag = d.date === today ? '<span class="tag now">tonight</span>' : (d.gate ? '<span class="tag gate">gate</span>' : '');
+    var tasksHtml = d.tasks.map(function (t, ti) {
+      var key = 'd' + di + 't' + ti;
+      return '<li><label><input type="checkbox" data-key="' + key + '"' + (state[key] ? ' checked' : '') + '><span>' + esc(t) + '</span></label></li>';
+    }).join('');
+    var promptHtml = d.prompt
+      ? '<details class="prompt"' + (d.date === today ? ' open' : '') + '><summary>codex handoff prompt</summary>' +
+        '<div class="prompt-box"><button class="copy-btn" data-prompt="' + di + '">copy</button><pre>' + esc(d.prompt) + '</pre></div></details>'
+      : '';
+    rail.insertAdjacentHTML('beforeend',
+      '<div class="' + cls + '" id="day-' + di + '">' +
+      '<div class="ticket-head"><span class="ticket-date">' + esc(d.label) + '</span>' +
+      '<span class="ticket-focus">' + esc(d.focus) + '</span>' + tag + '</div>' +
+      '<div class="ticket-body"><ul class="tasks">' + tasksHtml + '</ul>' + promptHtml + '</div></div>');
+  });
+
+  // ---- submission checklist ----
+  var sl = document.getElementById('submit-list');
+  SUBMIT.forEach(function (t, i) {
+    var key = 's' + i;
+    sl.insertAdjacentHTML('beforeend',
+      '<li><label><input type="checkbox" data-key="' + key + '"' + (state[key] ? ' checked' : '') + '><span>' + esc(t) + '</span></label></li>');
+  });
+
+  // ---- tonight panel ----
+  var idx = -1;
+  for (var i = 0; i < DAYS.length; i++) { if (DAYS[i].date === today) { idx = i; break; } }
+  var tonight = document.getElementById('tonight-title'), tdesc = document.getElementById('tonight-desc'),
+      tlabel = document.getElementById('tonight-label'), tdate = document.getElementById('tonight-date');
+  if (idx >= 0) {
+    tonight.textContent = DAYS[idx].focus; tdesc.textContent = DAYS[idx].desc; tdate.textContent = DAYS[idx].label;
+  } else if (today < DAYS[0].date) {
+    tlabel.textContent = 'Up first'; tonight.textContent = DAYS[0].focus; tdesc.textContent = DAYS[0].desc; tdate.textContent = DAYS[0].label;
+  } else {
+    tlabel.textContent = 'Build week is over';
+    tonight.textContent = today > '2026-07-21' ? 'Submitted. Wheel’s spinning.' : '—';
+    tdesc.textContent = 'If it shipped: record what you learned about Codex while it’s fresh. If it didn’t: same.';
+  }
+
+  // ---- checkbox persistence ----
+  document.addEventListener('change', function (e) {
+    var k = e.target && e.target.getAttribute && e.target.getAttribute('data-key');
+    if (!k) return;
+    state[k] = e.target.checked; save();
+  });
+
+  // ---- copy buttons ----
+  function flash(btn, txt) {
+    var old = btn.textContent; btn.textContent = txt;
+    setTimeout(function () { btn.textContent = old; }, 1400);
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target;
+    if (b.classList && b.classList.contains('copy-btn')) {
+      var p = DAYS[parseInt(b.getAttribute('data-prompt'), 10)].prompt;
+      navigator.clipboard.writeText(p).then(function () { flash(b, 'heard ✓'); }, function () { flash(b, 'select+copy'); });
+    }
+    if (b.classList && b.classList.contains('mini-copy')) {
+      navigator.clipboard.writeText(b.getAttribute('data-copy')).then(function () { flash(b, '✓'); }, function () { flash(b, '!'); });
+    }
+  });
+
+  // ---- countdowns ----
+  var DEADLINE = Date.UTC(2026, 6, 22, 0, 0, 0);   // Jul 21 5:00 PM PDT
+  var CREDITS = Date.UTC(2026, 6, 17, 19, 0, 0);   // Jul 17 12:00 PM PDT
+  var chipD = document.getElementById('chip-deadline'), chipC = document.getElementById('chip-credits');
+  function fmt(ms) {
+    if (ms <= 0) return null;
+    var d = Math.floor(ms / 86400000), h = Math.floor(ms % 86400000 / 3600000), m = Math.floor(ms % 3600000 / 60000);
+    return (d > 0 ? d + 'd ' : '') + h + 'h ' + String(m).padStart(2, '0') + 'm';
+  }
+  function tick() {
+    var now = Date.now();
+    var dl = fmt(DEADLINE - now);
+    chipD.innerHTML = dl ? 'submit in <b>' + dl + '</b>' : 'deadline passed';
+    var cr = fmt(CREDITS - now);
+    if (state['s1']) { chipC.textContent = 'credits ✓'; chipC.className = 'chip done'; }
+    else if (cr) { chipC.innerHTML = 'credits gate <b>' + cr + '</b>'; chipC.className = 'chip' + ((CREDITS - now) < 86400000 ? ' urgent' : ''); }
+    else { chipC.textContent = 'credits gate closed'; chipC.className = 'chip urgent'; }
+  }
+  tick(); setInterval(tick, 30000);
+})();
+</script>
