@@ -40,11 +40,13 @@ The pitch: sales contests today are spreadsheet chaos. TableStakes ingests sales
 
 Metrics are **computed in queries, never stored** — no sync drift.
 
-### Metric definitions (exact formulas)
+### Metric definitions (industry-standard restaurant BI names, exact formulas)
 
-- **PPA (per-person average):** sum(subtotal) / sum(party_size)
-- **Per-check average:** sum(subtotal) / count(checks)
-- **Alcohol %:** sum(alcohol item revenue) / sum(subtotal)
+- **PPA (per-person average, a.k.a. per-guest average):** sum(subtotal) / sum(party_size)
+- **Average check:** sum(subtotal) / count(checks)
+- **Beverage/alcohol sales %:** sum(alcohol item revenue) / sum(subtotal)
+- **Attachment rate (per category):** count(checks containing >= 1 item of category) / count(checks) — e.g. dessert attach, appetizer attach
+- **Attachment rate (per item):** count(checks containing the item) / count(checks)
 - **Item count:** total qty of a given menu_item sold
 - **Large-party PPA:** PPA over checks where party_size >= 6
 - **House average:** the same metric over all servers combined; a server "beats house" when their value exceeds it
@@ -54,13 +56,14 @@ Metrics are **computed in queries, never stored** — no sync drift.
 ```json
 {
   "goals": [
-    { "metric": "ppa" | "per_check" | "alcohol_pct" | "item_count" | "large_party_ppa",
-      "menu_item_id": 12,            // item_count only
+    { "metric": "ppa" | "avg_check" | "alcohol_pct" | "attach_rate" | "item_count" | "large_party_ppa",
+      "category": "dessert",         // attach_rate only (category form)
+      "menu_item_id": 12,            // item_count or attach_rate (item form)
       "threshold": 21.5,             // absolute, OR:
       "vs_house": true }             // qualify by beating house average
   ],
   "bingo_pool": [3, 7, 12, 18],      // menu_item_ids eligible for card cells — example truncated; a real pool MUST contain >= 24 ids
-  "entry_rules": { "per_goal_met": 1, "per_bingo_line": 1 },
+  "entry_rules": { "per_goal_met": 1, "per_bingo_win": 1 },
   "prize": "Friday night off + $50"
 }
 ```
@@ -78,7 +81,7 @@ Deterministic (fixed RNG seed). Generates:
 
 ### 1. Dashboard (`/`)
 
-- Leaderboard of servers with metric toggle (PPA / per-check / alcohol % / item counts).
+- Leaderboard of servers with metric toggle (PPA / average check / alcohol % / attach rates / item counts) plus a daily-wins tally column.
 - Each row: server, metric value, delta vs house average, qualification badges per contest goal.
 - Active contest banner: name, goals, prize, days remaining.
 - **Accept:** toggling metrics reorders the board; qualifiers visibly badged; numbers match hand-computed values from seed data (unit-tested).
@@ -87,12 +90,14 @@ Deterministic (fixed RNG seed). Generates:
 
 - Card grid per server: 5×5, center FREE, 24 items drawn from the contest's `bingo_pool`, no duplicates, every card a different random arrangement.
 - Buttons: **Re-randomize** (new grid, same server) and **Print** — print stylesheet renders one clean card per page (card name, server name, week; no app chrome).
-- Submission logging: manager marks which cells a turned-in card completed; app computes lines (rows, columns, diagonals; FREE counts), awards entries per `entry_rules`, logs who and when.
-- **Accept:** no card ever has duplicate items (unit-tested); print preview is one page, legible; submissions append to the log and change wheel entries.
+- Submission logging: manager marks which cells a turned-in card completed; app computes lines (rows, columns, diagonals; FREE counts), logs who and when.
+- **Bingo reward model:** a submission with >= 1 completed line is a **daily contest win** — always logged and celebrated (daily-wins tally on the dashboard and bingo page), independent of the wheel. If a weekly wheel drawing is active, the daily win ALSO awards wheel entries per `entry_rules.per_bingo_win`; if no drawing is active, the daily win stands alone.
+- **Accept:** no card ever has duplicate items (unit-tested); print preview is one page, legible; a winning submission always increments the server's daily-wins tally, and increments wheel entries only while a drawing is active.
 
 ### 3. Prize wheel (`/wheel`)
 
-- Wheel auto-populates: every server's entry count = goals met + bingo lines, per `entry_rules`. More entries = more wheel slices.
+- Wheel auto-populates: every server's entry count = goals met (per `entry_rules.per_goal_met`) + bingo daily wins earned while the drawing was active (per `entry_rules.per_bingo_win`). More entries = more wheel slices.
+- **Drawing "active" definition:** the weekly drawing is active while a contest has status `active` and no `wheel_drawings` row exists for it yet. After the spin, the drawing is done — later bingo wins are daily wins only.
 - **TV mode:** full-screen, big type, readable from across a break room.
 - Animated spin (CSS/JS, 4–6 seconds, decelerating), winner banner, drawing saved to history with an entries snapshot.
 - **Accept:** entry counts match dashboard qualifications + logged submissions; spin lands on a random slice weighted by entries; history persists.
@@ -128,7 +133,7 @@ Neutral hospitality branding — warm, confident, a little playful (it's a conte
 | Day | Work |
 |---|---|
 | Mon 7/13 (tonight) | Register on Devpost, **request free credits** (gate: Fri 7/17 noon PT), install Codex + sign in, watch launch livestream/replay, first Codex session: scaffold Next.js app from this spec |
-| Tue 7/14 | Seed script + data model + metric queries (unit tests here) |
+| Tue 7/14 | Seed script + data model + metric queries — PPA, average check, alcohol %, attach rates, item count, large-party (unit tests here) |
 | Wed 7/15 | Dashboard |
 | Thu 7/16 | Bingo: generation, print CSS, submissions |
 | Fri 7/17 | Prize wheel + TV mode |
