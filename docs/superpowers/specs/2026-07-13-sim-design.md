@@ -1,4 +1,4 @@
-# TableStakes — design spec
+# SIM: Sales Incentive Machine — design spec
 
 > Here's what I was thinking.
 >
@@ -13,14 +13,14 @@
 
 ## Product
 
-**TableStakes** (working title). Primary user: a restaurant manager running weekly sales contests. Servers never log in — their surfaces are a printed bingo card and a wheel spinning on the break-room TV.
+**SIM: Sales Incentive Machine.** Primary user: a restaurant manager running weekly sales contests. Servers never log in — their surfaces are a printed bingo card and a wheel spinning on the break-room TV. Restaurants are SIM's first data type; the engine goes domain-agnostic later, so core logic stays config-driven, never restaurant-hardcoded.
 
-The pitch: sales contests today are spreadsheet chaos. TableStakes ingests sales data, shows who's beating the goals, generates per-server bingo cards from the items you want pushed, logs turned-in cards, and rewards qualifiers with a live prize-wheel drawing.
+The pitch: sales contests today are spreadsheet chaos. SIM ingests sales data, shows who's beating the goals, generates per-server bingo cards from the items you want pushed, logs turned-in cards, and rewards qualifiers with a live prize-wheel drawing.
 
 ## Stack
 
 - **Next.js (App Router) + TypeScript + Tailwind.** One framework, API routes included.
-- **SQLite** via `better-sqlite3` (no ORM ceremony; direct SQL is fine for 8 tables). DB file lives at `data/tablestakes.db`, gitignored.
+- **SQLite** via `better-sqlite3` (no ORM ceremony; direct SQL is fine for 8 tables). DB file lives at `data/sim.db`, gitignored.
 - **Local-first.** Judges run: `npm install && npm run seed && npm run dev`. No cloud config, no auth.
 - **Tests:** Vitest, targeted only — metric math and bingo generation. No E2E.
 - `.env.local` holds `OPENAI_API_KEY` (optional) and `OPENAI_MODEL` (default `gpt-5.6`). Never committed. The app must be fully demoable with no key present.

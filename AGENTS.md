@@ -1,13 +1,13 @@
-# TableStakes — agent instructions
+# SIM: Sales Incentive Machine — agent instructions
 
 A sales-contest platform for restaurant managers: server leaderboards against sales goals, printable Server Bingo cards on menu items, and a weekly prize-wheel drawing. Hackathon project for OpenAI Build Week; deadline July 21, 2026.
 
-**The full spec is `docs/superpowers/specs/2026-07-13-tablestakes-design.md`. Read it before building anything. It defines the data model, exact metric formulas, contest config shape, feature acceptance criteria, and the cut list. When this file and the spec disagree, the spec wins.**
+**The full spec is `docs/superpowers/specs/2026-07-13-sim-design.md`. Read it before building anything. It defines the data model, exact metric formulas, contest config shape, feature acceptance criteria, and the cut list. When this file and the spec disagree, the spec wins.**
 
 ## Stack
 
 - Next.js (App Router) + TypeScript + Tailwind. No component libraries.
-- SQLite via `better-sqlite3`, direct SQL. DB at `data/tablestakes.db` (gitignored).
+- SQLite via `better-sqlite3`, direct SQL. DB at `data/sim.db` (gitignored).
 - Vitest for unit tests.
 
 ## Commands
