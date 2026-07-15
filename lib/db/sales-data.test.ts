@@ -1,7 +1,7 @@
 import Database from "better-sqlite3";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { addManualSalesEntry, correctSalesCheck, importSalesCsv } from "./sales-data";
+import { addManualSalesEntry, correctSalesCheck, getServerChecks, importSalesCsv } from "./sales-data";
 
 function fixture() { const db = new Database(":memory:"); db.exec(readFileSync(new URL("./schema.sql", import.meta.url), "utf8")); db.exec("INSERT INTO servers VALUES (1, 'Avery Moss', '#d97706', 1)"); db.exec("INSERT INTO menu_items VALUES (1, 'Ember Corn Cups', 'app', 8, 0)"); return db; }
 describe("sales data entry", () => {
@@ -9,4 +9,5 @@ describe("sales data entry", () => {
   it("tags manual corrections separately from imported sales", () => { const db = fixture(); addManualSalesEntry(db, { serverId: 1, openedAt: "2026-07-13T18:00:00.000Z", partySize: 2, subtotal: 32, note: "Corrected closeout" }); expect(db.prepare("SELECT source_type, note FROM sales_entry_audit").get()).toEqual({ source_type: "manual", note: "Corrected closeout" }); });
   it("corrects an existing check, replaces its items, and preserves the before value", () => { const db = fixture(); db.exec("INSERT INTO checks VALUES (9, 1, '2026-07-13T18:00:00.000Z', 2, 8); INSERT INTO check_items VALUES (1, 9, 1, 1, 8)"); correctSalesCheck(db, { checkId: 9, serverId: 1, openedAt: "2026-07-13T19:00:00.000Z", partySize: 3, subtotal: 16, note: "Added missed appetizer", items: [{ menuItemId: 1, qty: 2, priceEach: 8 }] }); expect(db.prepare("SELECT party_size, subtotal FROM checks WHERE id = 9").get()).toEqual({ party_size: 3, subtotal: 16 }); expect(db.prepare("SELECT qty FROM check_items WHERE check_id = 9").get()).toEqual({ qty: 2 }); expect(db.prepare("SELECT source_type, is_itemized FROM sales_entry_audit WHERE check_id = 9").get()).toEqual({ source_type: "corrected", is_itemized: 1 }); expect(db.prepare("SELECT before_json FROM sales_corrections WHERE check_id = 9").get()).toMatchObject({ before_json: expect.stringContaining('"subtotal":8') }); });
   it("rejects inconsistent and unreconciled grouped rows", () => { const db = fixture(); expect(() => importSalesCsv(db, "bad.csv", "check_reference,opened_at,server_name,party_size,subtotal,item_name,qty,price_each,note\nA-1,2026-07-13T18:00:00.000Z,Avery Moss,2,10,Ember Corn Cups,1,8,note\nA-1,2026-07-13T18:00:00.000Z,Avery Moss,3,10,Ember Corn Cups,1,8,note")).toThrow("inconsistent"); });
+  it("paginates a server's checks for the inline drawer", () => { const db = fixture(); for (let id = 1; id <= 12; id += 1) db.prepare("INSERT INTO checks VALUES (?, 1, ?, 2, 8)").run(id, `2026-07-${String(id).padStart(2, "0")}T18:00:00.000Z`); const data = getServerChecks(db, 1, 2); expect(data).toMatchObject({ page: 2, pageCount: 2, pageSize: 10, totalChecks: 12 }); expect(data.checks.map((check) => check.id)).toEqual([2, 1]); });
 });

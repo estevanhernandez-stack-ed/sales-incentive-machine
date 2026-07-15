@@ -96,6 +96,27 @@ export function getSalesCsv(db: Database.Database) {
   return [salesTemplateHeaders.join(","), ...rows.map((row) => salesTemplateHeaders.map((header) => csvEscape(row[header])).join(","))].join("\n");
 }
 
+export function getServerChecks(db: Database.Database, serverId: number, requestedPage = 1) {
+  if (!Number.isInteger(serverId) || !db.prepare("SELECT 1 FROM servers WHERE id = ? AND active = 1").get(serverId)) throw new Error("Choose an active server");
+  const pageSize = 10;
+  const totalChecks = (db.prepare("SELECT COUNT(*) AS count FROM checks WHERE server_id = ?").get(serverId) as { count: number }).count;
+  const pageCount = Math.max(1, Math.ceil(totalChecks / pageSize));
+  const page = Math.min(Math.max(1, Math.floor(requestedPage)), pageCount);
+  const checks = db.prepare(`SELECT c.id, c.server_id, c.opened_at, s.name AS server_name, c.party_size, c.subtotal,
+    COALESCE(sea.source_type, 'seed') AS source_type, COALESCE(sea.is_itemized, 1) AS is_itemized,
+    COALESCE(sea.note, '') AS note, COUNT(ci.id) AS item_rows
+    FROM checks c
+    JOIN servers s ON s.id = c.server_id
+    LEFT JOIN sales_entry_audit sea ON sea.check_id = c.id
+    LEFT JOIN check_items ci ON ci.check_id = c.id
+    WHERE c.server_id = ?
+    GROUP BY c.id
+    ORDER BY c.opened_at DESC, c.id DESC
+    LIMIT ? OFFSET ?`).all(serverId, pageSize, (page - 1) * pageSize) as Array<{ id: number; server_id: number; opened_at: string; server_name: string; party_size: number; subtotal: number; source_type: "seed" | "imported" | "manual" | "corrected"; is_itemized: number; note: string; item_rows: number }>;
+  const itemsForCheck = db.prepare("SELECT ci.menu_item_id, m.name AS menu_item_name, ci.qty, ci.price_each FROM check_items ci JOIN menu_items m ON m.id = ci.menu_item_id WHERE ci.check_id = ? ORDER BY ci.id");
+  return { page, pageCount, pageSize, totalChecks, checks: checks.map((check) => ({ ...check, items: itemsForCheck.all(check.id) as Array<{ menu_item_id: number; menu_item_name: string; qty: number; price_each: number }> })) };
+}
+
 export function getSalesDataPageData(db: Database.Database, options: { query?: string; page?: number } = {}) {
   const query = options.query?.trim() ?? "";
   const requestedPage = Math.max(1, Math.floor(options.page ?? 1));
@@ -109,5 +130,6 @@ export function getSalesDataPageData(db: Database.Database, options: { query?: s
   const itemsForCheck = db.prepare("SELECT ci.menu_item_id, m.name AS menu_item_name, ci.qty, ci.price_each FROM check_items ci JOIN menu_items m ON m.id = ci.menu_item_id WHERE ci.check_id = ? ORDER BY ci.id");
   const dashboard = getDashboardData(db);
   const performanceMetrics = dashboard?.metrics.filter((metric) => ["ppa::", "avg_check::", "alcohol_pct::", "attach_rate:app:", "attach_rate:dessert:"].includes(metric.id)) ?? [];
-  return { query, page, pageCount, pageSize, totalChecks, totalDatasetChecks: (db.prepare("SELECT COUNT(*) AS count FROM checks").get() as { count: number }).count, servers: db.prepare("SELECT id, name FROM servers WHERE active = 1 ORDER BY name").all() as Array<{ id: number; name: string }>, menuItems: db.prepare("SELECT id, name, price FROM menu_items ORDER BY category, name").all() as Array<{ id: number; name: string; price: number }>, imports: db.prepare("SELECT file_name, imported_at, row_count FROM data_imports ORDER BY imported_at DESC LIMIT 8").all() as Array<{ file_name: string; imported_at: string; row_count: number }>, manualCount: (db.prepare("SELECT COUNT(*) AS count FROM sales_corrections").get() as { count: number }).count, performanceMetrics, serverPerformance: dashboard?.leaderboard ?? [], contestGoalCount: dashboard?.contest.goals.length ?? 0, recentChecks: recentChecks.map((check) => ({ ...check, items: itemsForCheck.all(check.id) as Array<{ menu_item_id: number; menu_item_name: string; qty: number; price_each: number }> })) };
+  const attachItems = (check: typeof recentChecks[number]) => ({ ...check, items: itemsForCheck.all(check.id) as Array<{ menu_item_id: number; menu_item_name: string; qty: number; price_each: number }> });
+  return { query, page, pageCount, pageSize, totalChecks, totalDatasetChecks: (db.prepare("SELECT COUNT(*) AS count FROM checks").get() as { count: number }).count, servers: db.prepare("SELECT id, name FROM servers WHERE active = 1 ORDER BY name").all() as Array<{ id: number; name: string }>, menuItems: db.prepare("SELECT id, name, price FROM menu_items ORDER BY category, name").all() as Array<{ id: number; name: string; price: number }>, imports: db.prepare("SELECT file_name, imported_at, row_count FROM data_imports ORDER BY imported_at DESC LIMIT 8").all() as Array<{ file_name: string; imported_at: string; row_count: number }>, manualCount: (db.prepare("SELECT COUNT(*) AS count FROM sales_corrections").get() as { count: number }).count, performanceMetrics, serverPerformance: dashboard?.leaderboard ?? [], contestGoalCount: dashboard?.contest.goals.length ?? 0, recentChecks: recentChecks.map(attachItems) };
 }
