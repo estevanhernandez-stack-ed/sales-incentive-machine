@@ -104,6 +104,16 @@ body { background: linear-gradient(180deg, color-mix(in srgb, var(--chrome) 55%,
 .goal-cell.complete strong, .goal-cell.complete small { color: var(--positive); }
 .game-card > .button { margin-top: 1rem; }
 
+.theme-dialog { width: min(58rem, calc(100vw - 2rem)); }
+.theme-prompt-card { margin: 1rem 0 1.25rem; overflow: hidden; border: 1px solid var(--border); border-radius: .8rem; background: color-mix(in srgb, var(--bar-bg) 78%, var(--card)); }
+.theme-prompt-heading { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 1rem 1rem .85rem; border-bottom: 1px solid var(--border); }
+.theme-prompt-heading h3, .theme-json-heading h3 { margin: 0; font-size: 1rem; }
+.theme-prompt-heading p:last-child, .theme-json-heading p:last-child { margin: .3rem 0 0; color: var(--text-muted); font-size: .75rem; line-height: 1.45; }
+.copy-prompt-button { min-width: 7.1rem; border: 1px solid var(--accent); border-radius: .55rem; padding: .65rem .8rem; color: var(--bg); background: var(--accent); font: inherit; font-size: .75rem; font-weight: 900; cursor: pointer; }
+.copy-prompt-button.copied { border-color: var(--positive); background: var(--positive); }
+.theme-prompt-card pre { max-height: 16rem; overflow: auto; margin: 0; padding: 1rem; color: var(--text-secondary); background: color-mix(in srgb, var(--bg) 72%, transparent); font: .72rem/1.55 Consolas, monospace; white-space: pre-wrap; }
+.theme-json-heading { margin-bottom: .75rem; }
+
 @media (max-width: 70rem) {
   .app-bar { align-items: start; flex-direction: column; }
   .app-nav { max-width: 100%; margin-left: 0; overflow-x: auto; }
@@ -128,4 +138,6 @@ body { background: linear-gradient(180deg, color-mix(in srgb, var(--chrome) 55%,
   .entry-details { padding-left: .75rem; }
   .server-stat-grid { grid-template-columns: repeat(2, 1fr); }
   .game-toolbar > div { width: 100%; flex-wrap: wrap; }
+  .theme-prompt-heading { align-items: stretch; flex-direction: column; }
+  .copy-prompt-button { width: 100%; }
 }
