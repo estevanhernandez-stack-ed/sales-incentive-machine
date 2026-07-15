@@ -1,0 +1,14 @@
+{
+  "goals": [
+    { "metric": "attach_rate", "category": "app", "threshold": 0.32 },
+    { "metric": "alcohol_pct", "vs_house": true },
+    { "metric": "ppa", "vs_house": true }
+  ],
+  "bingo_pool": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28],
+  "entry_rules": { "per_goal_met": 1, "per_bingo_win": 1 },
+  "games": [
+    { "id": "ember-rush", "type": "sales_race", "title": "Ember Corn Cups Sales Race", "metric": { "metric": "item_count", "menu_item_id": 1 }, "entries_by_place": [3, 2, 1] },
+    { "id": "sweet-finish", "type": "menu_mission", "title": "Sweet Finish Goal Board", "objectives": [{ "metric": "attach_rate", "category": "dessert", "threshold": 0.2 }, { "metric": "item_count", "menu_item_id": 18, "threshold": 3 }], "entries_on_completion": 2 }
+  ],
+  "prize": "Friday sunset shift off + $50"
+}

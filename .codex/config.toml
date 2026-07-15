@@ -1,0 +1,9 @@
+[mcp_servers.sim_boh_pos]
+command = "node"
+args = ["mcp/boh-pos-server.mjs"]
+cwd = "."
+enabled = true
+required = false
+default_tools_approval_mode = "writes"
+startup_timeout_sec = 10
+tool_timeout_sec = 30

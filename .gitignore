@@ -1,5 +1,7 @@
 node_modules/
+.npm-cache/
 .next/
+*.tsbuildinfo
 data/*.db
 .env.local
 .env*.local
