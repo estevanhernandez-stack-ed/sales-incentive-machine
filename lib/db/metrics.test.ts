@@ -31,6 +31,14 @@ describe("restaurant metrics", () => {
     expect(getHouseMetric(db, { metric: "avg_check" })).toBeCloseTo(110 / 3);
   });
 
+  it("adds active contest tallies only to that contest's item count", () => {
+    const db = fixture();
+    db.exec("INSERT INTO contests VALUES (1, 'Dessert Push', '2026-07-13', '{}', 'active', 'manual'); INSERT INTO contest_score_entries VALUES (1, 1, 1, 2, 3, '2026-07-13T20:00:00.000Z', 'Live tally')");
+    expect(getMetric(db, { metric: "item_count", menuItemId: 2 }, 1)).toBe(2);
+    expect(getMetric(db, { metric: "item_count", menuItemId: 2 }, 1, 1)).toBe(5);
+    expect(getMetric(db, { metric: "ppa" }, 1, 1)).toBe(11.25);
+  });
+
   it("qualifies threshold goals inclusively and house goals strictly", () => {
     expect(qualifiesForGoal(0.32, 0.4, { metric: "attach_rate", category: "app", threshold: 0.32 })).toBe(true);
     expect(qualifiesForGoal(0.4, 0.4, { metric: "alcohol_pct", vs_house: true })).toBe(false);

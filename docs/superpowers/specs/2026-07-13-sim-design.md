@@ -34,6 +34,7 @@ The pitch: sales contests today are spreadsheet chaos. SIM ingests sales data, s
 | `checks` | id, server_id, opened_at, party_size, subtotal (set at seed time = sum of its check_items; queries read it directly, never recompute) |
 | `check_items` | id, check_id, menu_item_id, qty, price_each |
 | `contests` | id, name, week_start, config_json, status (`draft` / `active` / `closed`), created_via (`manual` / `ai`) |
+| `contest_score_entries` | id, contest_id, server_id, menu_item_id, quantity, entered_at, note — append-only live contest tallies, not restaurant checks |
 | `bingo_cards` | id, contest_id, server_id, grid_json (25 cells, index 12 = FREE), created_at |
 | `bingo_submissions` | id, card_id, submitted_at, marked_cells_json, lines_completed, entries_awarded |
 | `wheel_drawings` | id, contest_id, drawn_at, winner_server_id, entries_snapshot_json |
@@ -47,7 +48,7 @@ Metrics are **computed in queries, never stored** — no sync drift.
 - **Beverage/alcohol sales %:** sum(alcohol item revenue) / sum(subtotal)
 - **Attachment rate (per category):** count(checks containing >= 1 item of category) / count(checks) — e.g. dessert attach, appetizer attach
 - **Attachment rate (per item):** count(checks containing the item) / count(checks)
-- **Item count:** total qty of a given menu_item sold
+- **Item count:** total qty of a given menu_item on checks, plus append-only tally entries scoped to the active contest when contest standings are calculated
 - **Large-party PPA:** PPA over checks where party_size >= 6
 - **House average:** the same metric over all servers combined; a server "beats house" when their value exceeds it
 

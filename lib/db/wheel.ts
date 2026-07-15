@@ -66,10 +66,10 @@ function getEntrySnapshot(db: Database.Database, contest: ContestRow, config: Wh
   const servers = db.prepare("SELECT id, name, color FROM servers WHERE active = 1 ORDER BY name").all() as ServerRow[];
   const menuItems = new Map((db.prepare("SELECT id, name FROM menu_items").all() as Array<{ id: number; name: string }>).map((item) => [item.id, item.name]));
   const gameEntries = new Map((db.prepare("SELECT server_id, COALESCE(SUM(entries_awarded), 0) AS entries FROM game_awards WHERE contest_id = ? GROUP BY server_id").all(contest.id) as Array<{ server_id: number; entries: number }>).map((row) => [row.server_id, row.entries]));
-  const houseValues = config.goals.map((goal) => getHouseMetric(db, goalMetricDefinition(goal)));
+  const houseValues = config.goals.map((goal) => getHouseMetric(db, goalMetricDefinition(goal), contest.id));
   return servers.map((server) => {
     const goalStats = config.goals.map((goal, index) => {
-      const value = getMetric(db, goalMetricDefinition(goal), server.id);
+      const value = getMetric(db, goalMetricDefinition(goal), server.id, contest.id);
       return { label: goalLabel(goal, menuItems), value, target: goalTarget(goal), qualified: qualifiesForGoal(value, houseValues[index], goal), metric: goal.metric };
     });
     const goalsMet = goalStats.filter((goal) => goal.qualified).length;

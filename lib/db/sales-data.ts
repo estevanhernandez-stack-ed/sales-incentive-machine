@@ -45,6 +45,46 @@ export function importSalesCsv(db: Database.Database, fileName: string, csv: str
 
 export type SalesItemInput = { menuItemId: number; qty: number; priceEach: number };
 export type SalesCheckCorrection = { checkId: number; serverId: number; openedAt: string; partySize: number; subtotal: number; note: string; items: SalesItemInput[] };
+type ContestItemMetric = { metric?: string; menu_item_id?: number };
+type ContestItemGame = { type?: string; metric?: ContestItemMetric; objectives?: ContestItemMetric[] };
+
+function contestItemIds(configJson: string) {
+  const config = JSON.parse(configJson) as { goals?: ContestItemMetric[]; games?: ContestItemGame[] };
+  const definitions = [
+    ...(config.goals ?? []),
+    ...(config.games ?? []).flatMap((game) => game.type === "sales_race" ? game.metric ? [game.metric] : [] : game.type === "menu_mission" ? game.objectives ?? [] : []),
+  ];
+  return [...new Set(definitions.filter((definition) => definition.metric === "item_count" && Number.isInteger(definition.menu_item_id)).map((definition) => definition.menu_item_id as number))];
+}
+
+export function getContestSalesData(db: Database.Database) {
+  const contest = db.prepare("SELECT id, name, config_json FROM contests WHERE status = 'active' ORDER BY week_start DESC LIMIT 1").get() as { id: number; name: string; config_json: string } | undefined;
+  if (!contest) return null;
+  const targetIds = contestItemIds(contest.config_json);
+  const menuItems = new Map((db.prepare("SELECT id, name, price FROM menu_items").all() as Array<{ id: number; name: string; price: number }>).map((item) => [item.id, item]));
+  const targets = targetIds.flatMap((id) => { const item = menuItems.get(id); return item ? [{ menuItemId: item.id, name: item.name, price: item.price }] : []; });
+  const entries = db.prepare(`WITH ranked AS (
+    SELECT cse.id, cse.server_id, cse.menu_item_id, cse.quantity, cse.entered_at, cse.note, m.name AS menu_item_name,
+      ROW_NUMBER() OVER (PARTITION BY cse.server_id ORDER BY cse.entered_at DESC, cse.id DESC) AS server_rank
+    FROM contest_score_entries cse
+    JOIN menu_items m ON m.id = cse.menu_item_id
+    WHERE cse.contest_id = ?
+  )
+  SELECT id, server_id, menu_item_id, quantity, entered_at, note, menu_item_name
+  FROM ranked WHERE server_rank <= 5
+  ORDER BY server_id, entered_at DESC, id DESC`).all(contest.id) as Array<{ id: number; server_id: number; menu_item_id: number; quantity: number; entered_at: string; note: string; menu_item_name: string }>;
+  return { contestId: contest.id, contestName: contest.name, targets, entries };
+}
+
+export function addContestScoreEntry(db: Database.Database, input: { serverId: number; menuItemId: number; quantity: number; note?: string }) {
+  if (!Number.isInteger(input.serverId) || !Number.isInteger(input.menuItemId) || !Number.isInteger(input.quantity) || input.quantity <= 0 || input.quantity > 999) throw new Error("Enter a whole-number quantity between 1 and 999");
+  if (!db.prepare("SELECT 1 FROM servers WHERE id = ? AND active = 1").get(input.serverId)) throw new Error("Choose an active server");
+  const contestSales = getContestSalesData(db);
+  if (!contestSales) throw new Error("There is no active contest");
+  if (!contestSales.targets.some((target) => target.menuItemId === input.menuItemId)) throw new Error("Choose an item from the active contest");
+  const result = db.prepare("INSERT INTO contest_score_entries (contest_id, server_id, menu_item_id, quantity, entered_at, note) VALUES (?, ?, ?, ?, ?, ?)").run(contestSales.contestId, input.serverId, input.menuItemId, input.quantity, new Date().toISOString(), input.note?.trim() || "Live contest tally");
+  return { id: Number(result.lastInsertRowid), contestId: contestSales.contestId };
+}
 
 export function addManualSalesEntry(db: Database.Database, input: { serverId: number; openedAt: string; partySize: number; subtotal: number; note: string; items?: SalesItemInput[] }) {
   if (!Number.isInteger(input.serverId) || !Number.isInteger(input.partySize) || !Number.isFinite(input.subtotal) || input.partySize <= 0 || input.subtotal < 0) throw new Error("Enter a valid manual sales correction");
@@ -129,7 +169,9 @@ export function getSalesDataPageData(db: Database.Database, options: { query?: s
   const recentChecks = db.prepare(`SELECT c.id, c.server_id, c.opened_at, s.name AS server_name, c.party_size, c.subtotal, COALESCE(sea.source_type, 'seed') AS source_type, COALESCE(sea.is_itemized, 1) AS is_itemized, COALESCE(sea.note, '') AS note, COUNT(ci.id) AS item_rows FROM checks c JOIN servers s ON s.id = c.server_id LEFT JOIN sales_entry_audit sea ON sea.check_id = c.id LEFT JOIN check_items ci ON ci.check_id = c.id ${where} GROUP BY c.id ORDER BY c.opened_at DESC, c.id DESC LIMIT ? OFFSET ?`).all(...searchParams, pageSize, (page - 1) * pageSize) as Array<{ id: number; server_id: number; opened_at: string; server_name: string; party_size: number; subtotal: number; source_type: "seed" | "imported" | "manual" | "corrected"; is_itemized: number; note: string; item_rows: number }>;
   const itemsForCheck = db.prepare("SELECT ci.menu_item_id, m.name AS menu_item_name, ci.qty, ci.price_each FROM check_items ci JOIN menu_items m ON m.id = ci.menu_item_id WHERE ci.check_id = ? ORDER BY ci.id");
   const dashboard = getDashboardData(db);
-  const performanceMetrics = dashboard?.metrics.filter((metric) => ["ppa::", "avg_check::", "alcohol_pct::", "attach_rate:app:", "attach_rate:dessert:"].includes(metric.id)) ?? [];
+  const contestSales = getContestSalesData(db);
+  const contestItemIds = new Set(contestSales?.targets.map((target) => target.menuItemId) ?? []);
+  const performanceMetrics = dashboard?.metrics.filter((metric) => ["ppa::", "avg_check::", "alcohol_pct::", "attach_rate:app:", "attach_rate:dessert:"].includes(metric.id) || (metric.definition.metric === "item_count" && contestItemIds.has(metric.definition.menuItemId ?? 0))) ?? [];
   const attachItems = (check: typeof recentChecks[number]) => ({ ...check, items: itemsForCheck.all(check.id) as Array<{ menu_item_id: number; menu_item_name: string; qty: number; price_each: number }> });
-  return { query, page, pageCount, pageSize, totalChecks, totalDatasetChecks: (db.prepare("SELECT COUNT(*) AS count FROM checks").get() as { count: number }).count, servers: db.prepare("SELECT id, name FROM servers WHERE active = 1 ORDER BY name").all() as Array<{ id: number; name: string }>, menuItems: db.prepare("SELECT id, name, price FROM menu_items ORDER BY category, name").all() as Array<{ id: number; name: string; price: number }>, imports: db.prepare("SELECT file_name, imported_at, row_count FROM data_imports ORDER BY imported_at DESC LIMIT 8").all() as Array<{ file_name: string; imported_at: string; row_count: number }>, manualCount: (db.prepare("SELECT COUNT(*) AS count FROM sales_corrections").get() as { count: number }).count, performanceMetrics, serverPerformance: dashboard?.leaderboard ?? [], contestGoalCount: dashboard?.contest.goals.length ?? 0, recentChecks: recentChecks.map(attachItems) };
+  return { query, page, pageCount, pageSize, totalChecks, totalDatasetChecks: (db.prepare("SELECT COUNT(*) AS count FROM checks").get() as { count: number }).count, servers: db.prepare("SELECT id, name FROM servers WHERE active = 1 ORDER BY name").all() as Array<{ id: number; name: string }>, menuItems: db.prepare("SELECT id, name, price FROM menu_items ORDER BY category, name").all() as Array<{ id: number; name: string; price: number }>, imports: db.prepare("SELECT file_name, imported_at, row_count FROM data_imports ORDER BY imported_at DESC LIMIT 8").all() as Array<{ file_name: string; imported_at: string; row_count: number }>, manualCount: (db.prepare("SELECT COUNT(*) AS count FROM sales_corrections").get() as { count: number }).count, performanceMetrics, serverPerformance: dashboard?.leaderboard ?? [], contestGoalCount: dashboard?.contest.goals.length ?? 0, contestSales, recentChecks: recentChecks.map(attachItems) };
 }

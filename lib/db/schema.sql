@@ -72,6 +72,16 @@ CREATE TABLE contests (
   created_via TEXT NOT NULL CHECK(created_via IN ('manual', 'ai'))
 );
 
+CREATE TABLE contest_score_entries (
+  id INTEGER PRIMARY KEY,
+  contest_id INTEGER NOT NULL REFERENCES contests(id) ON DELETE CASCADE,
+  server_id INTEGER NOT NULL REFERENCES servers(id),
+  menu_item_id INTEGER NOT NULL REFERENCES menu_items(id),
+  quantity INTEGER NOT NULL CHECK(quantity > 0),
+  entered_at TEXT NOT NULL,
+  note TEXT NOT NULL DEFAULT ''
+);
+
 CREATE TABLE bingo_cards (
   id INTEGER PRIMARY KEY,
   contest_id INTEGER NOT NULL REFERENCES contests(id) ON DELETE CASCADE,
@@ -116,6 +126,7 @@ CREATE INDEX check_items_check_idx ON check_items(check_id);
 CREATE INDEX sales_entry_audit_source_idx ON sales_entry_audit(source_type);
 CREATE INDEX sales_corrections_check_idx ON sales_corrections(check_id);
 CREATE INDEX synthetic_pos_receipts_received_idx ON synthetic_pos_receipts(received_at);
+CREATE INDEX contest_score_entries_contest_server_idx ON contest_score_entries(contest_id, server_id, menu_item_id);
 CREATE UNIQUE INDEX bingo_daily_winning_card_idx ON bingo_submissions(card_id, date(submitted_at)) WHERE lines_completed >= 1;
 CREATE INDEX game_awards_contest_server_idx ON game_awards(contest_id, server_id);
 CREATE INDEX bingo_cards_contest_server_idx ON bingo_cards(contest_id, server_id);

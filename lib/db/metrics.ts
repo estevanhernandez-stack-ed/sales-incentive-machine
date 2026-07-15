@@ -23,8 +23,8 @@ function itemizedServerClause(serverId?: number) {
   return serverId === undefined ? { sql: `WHERE ${itemized}`, params: [] as unknown[] } : { sql: `WHERE ${itemized} AND c.server_id = ?`, params: [serverId] };
 }
 
-/** Computes a metric from checks and check_items; no metric values are persisted. */
-export function getMetric(db: Database.Database, definition: MetricDefinition, serverId?: number): number {
+/** Computes a metric from source records; final metric values are never persisted. */
+export function getMetric(db: Database.Database, definition: MetricDefinition, serverId?: number, contestId?: number): number {
   const scope = serverClause(serverId);
 
   switch (definition.metric) {
@@ -54,10 +54,16 @@ export function getMetric(db: Database.Database, definition: MetricDefinition, s
     }
     case "item_count":
       if (definition.menuItemId === undefined) throw new Error("item_count requires menuItemId");
-      return scalar(db, `SELECT COALESCE(SUM(ci.qty), 0) AS value FROM check_items ci JOIN checks c ON c.id = ci.check_id ${scope.sql} ${scope.sql ? "AND" : "WHERE"} ci.menu_item_id = ?`, [...scope.params, definition.menuItemId]);
+      {
+        const checkUnits = scalar(db, `SELECT COALESCE(SUM(ci.qty), 0) AS value FROM check_items ci JOIN checks c ON c.id = ci.check_id ${scope.sql} ${scope.sql ? "AND" : "WHERE"} ci.menu_item_id = ?`, [...scope.params, definition.menuItemId]);
+        if (contestId === undefined) return checkUnits;
+        const serverFilter = serverId === undefined ? "" : "AND server_id = ?";
+        const contestUnits = scalar(db, `SELECT COALESCE(SUM(quantity), 0) AS value FROM contest_score_entries WHERE contest_id = ? AND menu_item_id = ? ${serverFilter}`, serverId === undefined ? [contestId, definition.menuItemId] : [contestId, definition.menuItemId, serverId]);
+        return checkUnits + contestUnits;
+      }
   }
 }
 
-export function getHouseMetric(db: Database.Database, definition: MetricDefinition) {
-  return getMetric(db, definition);
+export function getHouseMetric(db: Database.Database, definition: MetricDefinition, contestId?: number) {
+  return getMetric(db, definition, undefined, contestId);
 }

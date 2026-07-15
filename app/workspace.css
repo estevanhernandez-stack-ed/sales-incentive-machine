@@ -93,6 +93,7 @@ body { background: linear-gradient(180deg, color-mix(in srgb, var(--chrome) 55%,
 .inline-editor label { display: grid; gap: .35rem; color: var(--text-dim); font-size: .72rem; font-weight: 800; }
 .inline-editor input, .inline-editor select { width: 100%; min-height: 2.5rem; border: 1px solid var(--border); border-radius: .5rem; padding: .6rem .7rem; color: var(--text); background: var(--bg); font: inherit; }
 .inline-editor select:disabled { color: var(--text-secondary); opacity: .8; }
+.inline-editor input[readonly] { color: var(--positive); background: color-mix(in srgb, var(--positive) 7%, var(--bg)); }
 .inline-tool-message { margin: 0; padding: .7rem .8rem; border-left: 3px solid var(--positive); border-radius: .35rem; color: var(--text-secondary); background: color-mix(in srgb, var(--positive) 9%, var(--card)); }
 .inline-tool-message.error { border-left-color: var(--negative); background: color-mix(in srgb, var(--negative) 9%, var(--card)); }
 .inline-loading { margin: 0; padding: 1rem; color: var(--text-muted); text-align: center; }
@@ -108,6 +109,25 @@ body { background: linear-gradient(180deg, color-mix(in srgb, var(--chrome) 55%,
 .inline-pagination { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-top: .35rem; color: var(--text-muted); font-size: .7rem; }
 .inline-pagination > div { display: flex; gap: .45rem; }
 .inline-pagination .button { padding: .45rem .65rem; font-size: .7rem; }
+.contest-quick-entry { display: grid; gap: 1rem; color: var(--text); }
+.contest-entry-controls { display: grid; grid-template-columns: minmax(12rem, 1.25fr) minmax(10rem, .7fr) minmax(10rem, .7fr) auto; gap: .75rem; align-items: end; }
+.contest-entry-controls label { display: grid; gap: .35rem; color: var(--text-dim); font-size: .72rem; font-weight: 800; }
+.contest-entry-controls select, .contest-entry-controls input { width: 100%; min-height: 2.6rem; border: 1px solid var(--border); border-radius: .5rem; padding: .6rem .7rem; color: var(--text); background: var(--bg); font: inherit; }
+.contest-target { display: flex; align-items: center; min-height: 2.6rem; border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--border)); border-radius: .5rem; padding: .6rem .75rem; color: var(--accent); background: color-mix(in srgb, var(--accent) 7%, var(--bg)); }
+.quantity-stepper { display: grid; grid-template-columns: 2.6rem minmax(4rem, 1fr) 2.6rem; }
+.quantity-stepper input { border-radius: 0; text-align: center; }
+.quantity-stepper button { border: 1px solid var(--border); color: var(--accent); background: var(--bar-bg); font: inherit; font-size: 1.1rem; font-weight: 900; cursor: pointer; }
+.quantity-stepper button:first-child { border-radius: .5rem 0 0 .5rem; }
+.quantity-stepper button:last-child { border-radius: 0 .5rem .5rem 0; }
+.quantity-stepper button:disabled { color: var(--text-muted); cursor: default; }
+.contest-entry-total { display: grid; gap: .1rem; min-height: 2.6rem; }
+.contest-entry-total small, .contest-entry-total span { color: var(--text-muted); font-size: .62rem; }
+.contest-entry-total strong { color: var(--positive); }
+.contest-entry-log { padding-top: .85rem; border-top: 1px solid var(--border); }
+.contest-entry-log ul { display: grid; gap: .35rem; margin: .55rem 0 0; padding: 0; list-style: none; }
+.contest-entry-log li { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: .5rem .65rem; border-radius: .45rem; background: color-mix(in srgb, var(--bar-bg) 70%, transparent); }
+.contest-entry-log li > span:first-child { display: grid; gap: .1rem; }
+.contest-entry-log small, .contest-entry-log li > span:last-child { color: var(--text-muted); font-size: .62rem; }
 
 .games-shell { max-width: 90rem; }
 .games-grid { gap: 1rem; }
@@ -167,6 +187,7 @@ body { background: linear-gradient(180deg, color-mix(in srgb, var(--chrome) 55%,
   .inline-check-summary { grid-template-columns: 1fr 1fr; }
   .inline-check-summary > span:first-child { grid-column: 1 / -1; }
   .inline-pagination { align-items: start; flex-direction: column; }
+  .contest-entry-controls { grid-template-columns: 1fr 1fr; }
   .theme-prompt-heading { align-items: stretch; flex-direction: column; }
   .copy-prompt-button { width: 100%; }
 }

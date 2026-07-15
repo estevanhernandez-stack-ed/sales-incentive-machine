@@ -1,7 +1,8 @@
 import Database from "better-sqlite3";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { awardMenuMission, lockSalesRace } from "./games";
+import { awardMenuMission, getGamesData, lockSalesRace } from "./games";
+import { getDashboardData } from "./dashboard";
 import { getWheelData } from "./wheel";
 
 function fixture() {
@@ -15,4 +16,6 @@ function fixture() {
 }
 describe("sales games", () => {
   it("locks a live race once, awards missions once, and feeds the wheel", () => { const db = fixture(); expect(lockSalesRace(db, "race").map((entry) => entry.serverId)).toEqual([1, 2]); expect(() => lockSalesRace(db, "race")).toThrow("already locked"); expect(awardMenuMission(db, "mission")).toEqual([1]); expect(awardMenuMission(db, "mission")).toEqual([]); expect(getWheelData(db)?.entries.map((entry) => ({ id: entry.serverId, entries: entry.entries }))).toEqual([{ id: 1, entries: 5 }, { id: 2, entries: 2 }]); });
+  it("includes contest-only item tallies in live standings", () => { const db = fixture(); db.exec("INSERT INTO contest_score_entries VALUES (1, 1, 2, 1, 4, '2026-07-13T20:00:00.000Z', 'Live tally')"); const race = getGamesData(db)?.games.find((game) => game.type === "sales_race"); expect(race?.standings.map((server) => ({ id: server.id, value: server.value }))).toEqual([{ id: 2, value: 7 }, { id: 1, value: 5 }]); });
+  it("surfaces item metrics used only by a game on the server score table", () => { const metricIds = getDashboardData(fixture())?.metrics.map((metric) => metric.id); expect(metricIds).toContain("item_count::18"); });
 });

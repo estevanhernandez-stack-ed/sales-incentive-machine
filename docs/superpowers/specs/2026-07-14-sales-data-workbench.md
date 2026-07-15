@@ -20,7 +20,7 @@ This is not a POS integration. It remains a local CSV and manual-entry tool that
 
 - **Guide at the decision point.** Show reconciliation, data coverage, and consequences beside the action that needs them; do not add promotional cards or generic encouragement.
 - **A record is inspectable before it is editable.** Viewing a check never implies changing it.
-- **Raw sales are the source of truth.** Metrics, standings, game progress, and impact previews are always computed from current raw checks and items. No metric values are persisted.
+- **Source events are the truth.** Check-based metrics come from raw checks and items. Active item-count contests may also consume append-only contest tally events that never masquerade as checks. No final metric values are persisted.
 - **History explains, not obscures.** A correction never destroys its origin or its prior value.
 - **No silent fairness changes.** A correction can update live, unlocked standings, but locked game awards and wheel snapshots remain immutable historical outcomes.
 - **Fast under service pressure.** The common paths—find a check, inspect it, fix one item, add a missed check—should be usable with one focused panel and minimal page movement.
@@ -32,6 +32,7 @@ This is not a POS integration. It remains a local CSV and manual-entry tool that
 - A filterable, paginated check browser with check IDs and item detail.
 - A desktop inspector / mobile drawer for view, correction, and audit history.
 - Item-first manual entry and correction with live reconciliation.
+- A server-row quick tally for item-count targets in the active contest, with automatic quantity/value math and an audit trail separate from checks.
 - A data-health strip that explains item-data coverage and affected active metrics/games.
 - A two-stage CSV preflight and confirmed import workflow, including column mapping and check-level validation.
 - Durable source/check references so re-imports can identify new, changed, and already-present checks.
@@ -56,7 +57,7 @@ This is not a POS integration. It remains a local CSV and manual-entry tool that
 3. **Action row** — `Import CSV`, `Add check`, and `Export CSV`. These are tasks, not marketing cards.
 4. **Filter toolbar** — date preset, custom date range, server, source, item-detail state, needs-attention state, and text search.
 5. **Check browser** — 25 checks per page by default, with View and Edit as distinct actions.
-6. **Inspector** — shown only after View, Edit, or Add. It is fixed beside the table on wide screens and a dismissible drawer on narrow screens. It never appears beneath a long table.
+6. **Inline tools** — View, Edit, Add check, contest tally, and server check history unfold directly beneath the row or action that launched them.
 
 The default date preset is **Contest week** when an active contest exists; otherwise it is **All sales**. The manager can always select Today, Yesterday, Contest week, or Custom. This affects the data browser and health strip only, not the underlying contest metric semantics.
 
@@ -83,6 +84,12 @@ Pagination is server-backed and preserves all filters/search terms. The footer r
 ### 4.3 Check inspector
 
 The inspector has three modes.
+
+The inspector is row-anchored: opening or editing a check inserts it directly beneath that check. Server-level check history and contest tally tools similarly expand beneath the selected server row.
+
+### 4.4 Active contest tally
+
+For every active `item_count` goal or game, each server row exposes `Add contest sales`. The tool lists only the active contest items, defaults to its first target, and asks only for quantity. It calculates menu value automatically and appends a `contest_score_entries` event. This event contributes to that contest's item-count standings and audit history, but never creates a check or changes PPA, average check, party size, alcohol percentage, or attachment rate.
 
 #### View
 
@@ -264,6 +271,7 @@ Use small request handlers over the shared services:
 | `PUT /api/sales-data/checks/[checkId]` | Save named correction and change log. |
 | `POST /api/sales-data/checks/[checkId]/impact` | Return a non-persisted impact preview for a draft. |
 | `POST /api/sales-data/manual` | Create a manual check from the shared draft validator. |
+| `POST /api/sales-data/contest-score` | Append an item-count tally for a server and an item referenced by the active contest. |
 | `POST /api/sales-data/changes/[changeId]/revert` | Revert an earlier state as a new auditable event. |
 
 Every write revalidates `/`, `/data`, `/games`, and `/wheel`. The API must not accept a manager-supplied metric result, game placement, or wheel entry count.
@@ -299,7 +307,8 @@ Corrections remain allowed after a lock/drawing because data accuracy matters. T
 - [ ] Search covers internal ID, durable external reference, server, item, import source, and correction reason across the full dataset.
 - [ ] The browser is server-paginated at 25 rows and reports the displayed range/total.
 - [ ] Check # is visible; View shows items, origin, and history without entering edit mode.
-- [ ] Selecting View/Edit opens an inspector near the controls, never after the end of the list.
+- [ ] Selecting View/Edit opens its inspector directly beneath the originating row.
+- [ ] `Add contest sales` requires only an active contest item and quantity; it updates item-count standings without creating a check or changing check-based metrics.
 
 ### Entry and correction integrity
 

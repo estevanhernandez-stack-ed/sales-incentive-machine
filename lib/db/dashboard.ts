@@ -16,6 +16,7 @@ type ContestConfig = {
   bingo_pool: number[];
   entry_rules: { per_goal_met: number; per_bingo_win: number };
   prize: string;
+  games?: Array<{ type: "sales_race"; metric: ContestGoal } | { type: "menu_mission"; objectives: ContestGoal[] }>;
 };
 
 export type DashboardMetric = {
@@ -80,7 +81,7 @@ function parseConfig(raw: string): ContestConfig {
   return config;
 }
 
-/** Returns all live dashboard data; sales metrics remain computed directly from checks. */
+/** Returns all live dashboard data; metrics are computed from checks plus scoped contest tally events. */
 export function getDashboardData(db: Database.Database): DashboardData | null {
   const activeContest = db.prepare("SELECT id, name, week_start, config_json FROM contests WHERE status = 'active' ORDER BY week_start DESC LIMIT 1").get() as ActiveContestRow | undefined;
   if (!activeContest) return null;
@@ -96,10 +97,11 @@ export function getDashboardData(db: Database.Database): DashboardData | null {
     { metric: "attach_rate", category: "dessert" },
     ...config.bingo_pool.slice(0, 2).map((menuItemId) => ({ metric: "item_count" as const, menuItemId })),
   ];
-  const definitions = [...baseMetrics, ...config.goals.map(goalMetricDefinition)]
+  const gameMetrics = (config.games ?? []).flatMap((game) => game.type === "sales_race" ? [goalMetricDefinition(game.metric)] : game.objectives.map(goalMetricDefinition));
+  const definitions = [...baseMetrics, ...config.goals.map(goalMetricDefinition), ...gameMetrics]
     .filter((definition, index, all) => all.findIndex((other) => metricKey(other) === metricKey(definition)) === index);
   const metrics = definitions.map((definition) => ({ id: metricKey(definition), label: metricLabel(definition, menuItems), definition }));
-  const houseValues = Object.fromEntries(metrics.map(({ id, definition }) => [id, getHouseMetric(db, definition)]));
+  const houseValues = Object.fromEntries(metrics.map(({ id, definition }) => [id, getHouseMetric(db, definition, activeContest.id)]));
   const dailyWins = new Map((db.prepare(`
     SELECT bc.server_id, COUNT(*) AS wins
     FROM bingo_submissions bs
@@ -124,7 +126,7 @@ export function getDashboardData(db: Database.Database): DashboardData | null {
     houseValues,
     lastWinner: lastWinner ? { name: lastWinner.name, drawnAt: lastWinner.drawn_at } : null,
     leaderboard: servers.map((server) => {
-      const values = Object.fromEntries(metrics.map(({ id, definition }) => [id, getMetric(db, definition, server.id)]));
+      const values = Object.fromEntries(metrics.map(({ id, definition }) => [id, getMetric(db, definition, server.id, activeContest.id)]));
       const qualifications = config.goals.map((goal) => {
         const id = metricKey(goalMetricDefinition(goal));
         return qualifiesForGoal(values[id], houseValues[id], goal);
