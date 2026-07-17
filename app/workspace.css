@@ -148,6 +148,7 @@ body { background: linear-gradient(180deg, color-mix(in srgb, var(--chrome) 55%,
 .goal-cell small { margin-top: .2rem; color: var(--text-muted); font-size: .65rem; }
 .goal-cell.complete strong, .goal-cell.complete small { color: var(--positive); }
 .game-card > .button { margin-top: 1rem; }
+.game-card.evidence-focus { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 28%, transparent); }
 
 .theme-dialog { width: min(58rem, calc(100vw - 2rem)); }
 .theme-prompt-card { margin: 1rem 0 1.25rem; overflow: hidden; border: 1px solid var(--border); border-radius: .8rem; background: color-mix(in srgb, var(--bar-bg) 78%, var(--card)); }

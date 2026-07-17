@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "id": "manager-late-information",
+  "title": "Manager reconciles a late shift receipt",
+  "role": "contest_manager",
+  "runbook_id": "contest-manager",
+  "purpose": "Test whether preview and finalization make late live information visible before an irreversible award.",
+  "starting_state": ["Use a disposable database with an active item-sales contest", "At least one game is open", "No game award or drawing is final"],
+  "fixtures": { "late_item_name": "Ember Corn Cups", "late_quantity": 4, "late_server_position": 3 },
+  "assignments": ["Reach the final award preview", "Apply one valid shift-manager tally with a separate late operation ID", "Re-open the preview and compare the standings", "Finalize only after the late receipt is reconciled and explicit confirmation is renewed"],
+  "required_steps": ["CM-01", "CM-10", "CM-11", "CM-12", "CM-15"],
+  "success_conditions": ["The late receipt is visible before finalization", "The second preview visibly differs or identifies stale context", "No award is finalized from the old preview", "All required evidence and debrief artifacts validate"],
+  "intentional_discoveries": ["Whether preview versions or UI language prevent finalizing stale standings"]
+}

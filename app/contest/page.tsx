@@ -10,5 +10,5 @@ export default function ContestPage() {
   const data = getContestSetupData(db);
   db.close();
   if (!data) return <main className="shell"><h1>No active contest</h1><p className="lede">Seed the local database to create a contest.</p></main>;
-  return <main className="shell contest-shell"><PageHeader current="/contest" section="Contest setup" title="Build the next sales contest" description="Set the goals, prize, scoring, and live gameboards your team will use." /><ContestBuilder initialName={data.name} initialConfig={data.config} menuItems={data.menuItems} /></main>;
+  return <main className="shell contest-shell"><PageHeader current="/contest" section="Contest setup" title="Build the next sales contest" description="Set the goals, prize, scoring, and live gameboards your team will use." /><ContestBuilder initialContestId={data.id} initialName={data.name} initialConfig={data.config} menuItems={data.menuItems} /></main>;
 }

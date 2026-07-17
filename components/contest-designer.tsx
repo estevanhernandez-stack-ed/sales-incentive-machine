@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { ContestCategory, ContestConfig, ContestGameConfig, ContestGoalConfig, MenuMissionConfig, SalesRaceConfig } from "../lib/contest-designer";
 import type { ContestMenuItem } from "../lib/db/contest";
 
@@ -26,11 +26,12 @@ function defaultGoal(metric: ContestGoalConfig["metric"], menuItems: ContestMenu
 
 function gameList(config: ContestConfig) { return config.games ?? []; }
 
-export function ContestBuilder({ initialName, initialConfig, menuItems }: { initialName: string; initialConfig: ContestConfig; menuItems: ContestMenuItem[] }) {
+export function ContestBuilder({ initialContestId, initialName, initialConfig, menuItems }: { initialContestId: number; initialName: string; initialConfig: ContestConfig; menuItems: ContestMenuItem[] }) {
   const [name, setName] = useState(initialName);
   const [config, setConfig] = useState(initialConfig);
   const [message, setMessage] = useState("Editing the active contest as a starting point. Nothing changes until you activate it.");
   const [loading, setLoading] = useState(false);
+  const activationOperation = useRef<string | null>(null);
   const race = gameList(config).find((game): game is SalesRaceConfig => game.type === "sales_race");
   const mission = gameList(config).find((game): game is MenuMissionConfig => game.type === "menu_mission");
   const menuById = useMemo(() => new Map(menuItems.map((item) => [item.id, item])), [menuItems]);
@@ -77,11 +78,22 @@ export function ContestBuilder({ initialName, initialConfig, menuItems }: { init
     setLoading(true);
     const games = gameList(config).map((game) => game.type === "menu_mission" ? { ...game, objectives: config.goals } : game);
     const nextConfig = { ...config, games };
-    const response = await fetch("/api/contest-designer/activate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, config: nextConfig }) });
-    const result = await response.json().catch(() => null) as { error?: string } | null;
-    setLoading(false);
-    if (response.ok) { setConfig(nextConfig); setMessage("Contest activated. Dashboard, Bingo, Wheel, and Gameboards now use these settings."); }
-    else setMessage(result?.error ?? "Could not activate this contest.");
+    try {
+      const previewResponse = await fetch("/api/ops/preview/contest", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, config: nextConfig }) });
+      const preview = await previewResponse.json().catch(() => null) as { current_contest_id?: number; planned_bingo_cards?: number; error?: { message?: string } } | null;
+      if (!previewResponse.ok || !preview?.current_contest_id) { setMessage(preview?.error?.message ?? "Could not validate this contest."); setLoading(false); return; }
+      if (!window.confirm(`Activate ${name.trim()}? This closes the current contest and creates ${preview.planned_bingo_cards ?? 0} fresh Bingo cards.`)) { setMessage("Activation cancelled. The current contest is unchanged."); setLoading(false); return; }
+      const operationId = activationOperation.current ?? `ui-manager-activate-${crypto.randomUUID()}`;
+      activationOperation.current = operationId;
+      const response = await fetch("/api/ops/commands", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ operation_id: operationId, action: "activate_contest", actor_role: "contest_manager", expected_contest_id: initialContestId, confirm: true, payload: { name, config: nextConfig } }) });
+      const result = await response.json().catch(() => null) as { operation?: { operation_id?: string }; error?: { message?: string } } | null;
+      setLoading(false);
+      if (response.ok) { activationOperation.current = null; setConfig(nextConfig); setMessage(`Contest activated. Receipt ${result?.operation?.operation_id}. Dashboard, Bingo, Wheel, and Gameboards now use these settings.`); }
+      else { activationOperation.current = null; setMessage(result?.error?.message ?? "Could not activate this contest."); }
+    } catch {
+      setLoading(false);
+      setMessage("Connection interrupted. Try again to reconcile the same activation receipt before creating another contest.");
+    }
   }
 
   return <section className="contest-builder">

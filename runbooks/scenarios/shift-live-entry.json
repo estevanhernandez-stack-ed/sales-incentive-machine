@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "id": "shift-live-entry",
+  "title": "Shift manager enters live item sales and Bingo",
+  "role": "shift_manager",
+  "runbook_id": "shift-manager",
+  "purpose": "Exercise the normal live shift path without fabricating full checks or using manager authority.",
+  "starting_state": ["Use a freshly seeded disposable database", "The active contest includes Ember Corn Cups as an item-count target", "The prize drawing remains open"],
+  "fixtures": {
+    "item_name": "Ember Corn Cups",
+    "server_quantities": [
+      { "server_position": 1, "quantity": 4 },
+      { "server_position": 2, "quantity": 3 },
+      { "server_position": 3, "quantity": 5 }
+    ],
+    "bingo_server_position": 1,
+    "bingo_line": "first complete logical row available on the assigned card"
+  },
+  "assignments": ["Record all three quantities through the inline contest-sales workflow", "Verify the server and gameboard after each receipt", "Log one current winning Bingo card", "Reconcile all operations at shift handoff"],
+  "required_steps": ["SM-01", "SM-02", "SM-03", "SM-04", "SM-05", "SM-06", "SM-07", "SM-11"],
+  "success_conditions": ["Three positive tally events exist with unique operation IDs", "Only scoped item counts change from tally events", "One Bingo submission is reconciled", "No manager-only write occurs", "All required evidence and debrief artifacts validate"],
+  "intentional_discoveries": ["Whether repeated entries remain fast and anchored to the server row", "Whether the board change is visible without hidden refresh knowledge"]
+}

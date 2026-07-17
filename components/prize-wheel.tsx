@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { WheelData } from "../lib/db/wheel";
 
@@ -33,24 +33,35 @@ function sliceCenters(entries: WheelData["entries"]) {
   return active.map((entry) => { const arc = (entry.entries / total) * 360; const center = position + arc / 2; position += arc; return { ...entry, center }; });
 }
 
-export function PrizeWheel({ data }: { data: WheelData }) {
+export function PrizeWheel({ data, initialServerId }: { data: WheelData; initialServerId?: number }) {
   const router = useRouter();
   const [spinning, setSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [winnerName, setWinnerName] = useState<string | null>(data.currentDrawing?.winnerName ?? null);
-  const [expandedServerId, setExpandedServerId] = useState<number | null>(null);
+  const [expandedServerId, setExpandedServerId] = useState<number | null>(data.entries.some((entry) => entry.serverId === initialServerId) ? initialServerId as number : null);
+  const drawingOperation = useRef<string | null>(null);
   const activeEntries = data.entries.filter((entry) => entry.entries > 0);
   const gradient = useMemo(() => wheelGradient(data.entries), [data.entries]);
   const labels = useMemo(() => sliceCenters(data.entries), [data.entries]);
 
   async function spin() {
     if (spinning || data.currentDrawing) return;
+    if (!window.confirm(`Draw one winner for ${data.contest.prize}? The winner and entry field cannot be changed afterward.`)) return;
     setSpinning(true);
-    const response = await fetch("/api/wheel/draw", { method: "POST" });
-    const result = await response.json().catch(() => null) as { winner?: { serverId: number; name: string }; error?: string } | null;
-    if (!response.ok || !result?.winner) { setWinnerName(result?.error ?? "Unable to spin the wheel."); setSpinning(false); return; }
-    setRotation(rotation + targetRotation(data.entries, result.winner.serverId));
-    window.setTimeout(() => { setWinnerName(result.winner?.name ?? null); setSpinning(false); router.refresh(); }, 5000);
+    const operationId = drawingOperation.current ?? `ui-manager-draw-${crypto.randomUUID()}`;
+    drawingOperation.current = operationId;
+    try {
+      const response = await fetch("/api/ops/commands", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ operation_id: operationId, action: "draw_prize_winner", actor_role: "contest_manager", expected_contest_id: data.contest.id, confirm: true, payload: {} }) });
+      const result = await response.json().catch(() => null) as { result?: { winner?: { serverId: number; name: string } }; error?: { message?: string } } | null;
+      if (!response.ok || !result?.result?.winner) { drawingOperation.current = null; setWinnerName(result?.error?.message ?? "Unable to spin the wheel."); setSpinning(false); return; }
+      drawingOperation.current = null;
+      const winner = result.result.winner;
+      setRotation(rotation + targetRotation(data.entries, winner.serverId));
+      window.setTimeout(() => { setWinnerName(winner.name); setSpinning(false); router.refresh(); }, 5000);
+    } catch {
+      setWinnerName("Connection interrupted. Retry to reconcile the same drawing receipt.");
+      setSpinning(false);
+    }
   }
 
   return <section className="wheel-layout">

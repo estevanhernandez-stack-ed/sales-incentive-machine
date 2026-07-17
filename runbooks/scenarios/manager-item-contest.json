@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "id": "manager-item-contest",
+  "title": "Manager creates and closes an item-sales contest",
+  "role": "contest_manager",
+  "runbook_id": "contest-manager",
+  "purpose": "Exercise the complete management lifecycle from setup through one immutable prize drawing.",
+  "starting_state": ["Use a freshly seeded disposable database", "One prior active contest exists", "No drawing exists for the replacement contest"],
+  "fixtures": {
+    "contest_name": "Corn Cup Countdown",
+    "prize": "First choice of next week's shift meal",
+    "featured_item_name": "Ember Corn Cups",
+    "featured_item_quantity_target": 12,
+    "entries_per_goal": 2,
+    "entries_per_bingo": 1,
+    "race_name": "Corn Cup Sprint",
+    "goal_board_name": "Corn Cup Crew Goal"
+  },
+  "assignments": [
+    "Create the configured item-count goal and prize in the UI",
+    "Enable both the featured race and goal board",
+    "Activate only after preview and explicit confirmation",
+    "Verify all active surfaces, finalize awards, preview the field, and draw once"
+  ],
+  "required_steps": ["CM-01", "CM-02", "CM-03", "CM-04", "CM-05", "CM-06", "CM-07", "CM-08", "CM-10", "CM-11", "CM-12", "CM-13", "CM-14", "CM-15"],
+  "success_conditions": ["Exactly one replacement contest is active", "Every active server has one current Bingo card", "Final game awards are persisted once", "Exactly one drawing and entry snapshot exist", "All required evidence and debrief artifacts validate"],
+  "intentional_discoveries": ["Whether setup makes the live-entry path obvious", "Whether the manager can reconcile score sources before irreversible actions"]
+}

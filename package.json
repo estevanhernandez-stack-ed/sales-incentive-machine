@@ -8,6 +8,12 @@
     "start": "next start",
     "seed": "node seed/index.js",
     "mcp:boh-pos": "node mcp/boh-pos-server.mjs",
+    "mcp:ops": "node mcp/sim-ops-server.mjs",
+    "runbook:docs": "node scripts/generate-runbook-docs.mjs",
+    "runbook:scaffold": "node scripts/scaffold-run.mjs",
+    "runbook:serve": "node scripts/serve-run.mjs",
+    "runbook:block": "node scripts/mark-run-blocked.mjs",
+    "runbook:verify": "node scripts/verify-run.mjs",
     "test": "vitest run"
   },
   "dependencies": {

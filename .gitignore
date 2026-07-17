@@ -3,5 +3,6 @@ node_modules/
 .next/
 *.tsbuildinfo
 data/*.db
+artifacts/runbook-runs/
 .env.local
 .env*.local

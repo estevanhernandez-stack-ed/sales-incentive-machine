@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { getSalesDataPageData } from "../lib/db/sales-data";
 
@@ -20,14 +20,15 @@ function itemTotal(items: ItemLine[]) { return items.reduce((total, item) => tot
 function formatMetric(value: number, metricId: string) { if (metricId.startsWith("item_count")) return value.toLocaleString(); return metricId.includes("_pct") || metricId.startsWith("attach_rate") ? `${(value * 100).toFixed(1)}%` : `$${value.toFixed(2)}`; }
 function originKey(origin: EditorOrigin | null) { if (!origin) return ""; if (origin.kind === "server-check") return `${origin.kind}:${origin.serverId}:${origin.checkId}`; if (origin.kind === "table-check") return `${origin.kind}:${origin.checkId}`; return origin.kind; }
 
-export function SalesDataManager({ data }: { data: Data }) {
+export function SalesDataManager({ data, initialServerId, initialPanel, initialCheckId }: { data: Data; initialServerId?: number; initialPanel?: "contest" | "checks"; initialCheckId?: number }) {
   const router = useRouter();
+  const validInitialServerId = data.serverPerformance.some((server) => server.id === initialServerId) ? initialServerId : undefined;
   const [message, setMessage] = useState("");
   const [uploadMessage, setUploadMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [search, setSearch] = useState(data.query);
-  const [serverPanel, setServerPanel] = useState<ServerPanel | null>(null);
+  const [serverPanel, setServerPanel] = useState<ServerPanel | null>(validInitialServerId && initialPanel ? { serverId: validInitialServerId, mode: initialPanel } : null);
   const [serverChecks, setServerChecks] = useState<Record<number, ServerChecksPage>>({});
   const [checksBusy, setChecksBusy] = useState<number | null>(null);
   const [checksError, setChecksError] = useState<Record<number, string>>({});
@@ -35,6 +36,7 @@ export function SalesDataManager({ data }: { data: Data }) {
   const [contestQuantity, setContestQuantity] = useState("1");
   const [contestMessage, setContestMessage] = useState("");
   const [contestBusy, setContestBusy] = useState(false);
+  const contestOperation = useRef<string | null>(null);
   const [editorOrigin, setEditorOrigin] = useState<EditorOrigin | null>(null);
   const [selected, setSelected] = useState<Check | null>(null);
   const [newCheck, setNewCheck] = useState(false);
@@ -44,6 +46,7 @@ export function SalesDataManager({ data }: { data: Data }) {
   const [subtotal, setSubtotal] = useState("");
   const [note, setNote] = useState("");
   const [items, setItems] = useState<ItemLine[]>([]);
+  const checkOperation = useRef<string | null>(null);
   const serverColumnCount = data.performanceMetrics.length + 4;
 
   function clearEditor() {
@@ -121,6 +124,10 @@ export function SalesDataManager({ data }: { data: Data }) {
     if (!serverChecks[serverId]) void loadServerChecks(serverId);
   }
 
+  useEffect(() => {
+    if (validInitialServerId && initialPanel === "checks" && !serverChecks[validInitialServerId]) void loadServerChecks(validInitialServerId);
+  }, [validInitialServerId, initialPanel]);
+
   function toggleTableCheck(check: Check) {
     if (editorOrigin?.kind === "table-check" && editorOrigin.checkId === check.id) {
       clearEditor();
@@ -130,6 +137,12 @@ export function SalesDataManager({ data }: { data: Data }) {
     setContestMessage("");
     chooseCheck(check, { kind: "table-check", checkId: check.id });
   }
+
+  useEffect(() => {
+    if (!initialCheckId) return;
+    const check = data.recentChecks.find((candidate) => candidate.id === initialCheckId);
+    if (check) chooseCheck(check, { kind: "table-check", checkId: check.id });
+  }, [initialCheckId]);
 
   function toggleLiveEntry() {
     if (editorOrigin?.kind === "live-entry") {
@@ -164,16 +177,24 @@ export function SalesDataManager({ data }: { data: Data }) {
     if (!selected && !newCheck) return;
     setBusy(true);
     setMessage("");
-    const response = await fetch(selected ? `/api/sales-data/checks/${selected.id}` : "/api/sales-data/manual", { method: selected ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ serverId: Number(serverId), openedAt: new Date(openedAt).toISOString(), partySize: Number(partySize), subtotal: Number(subtotal), note, items: items.map((item) => ({ menuItemId: Number(item.menuItemId), qty: Number(item.qty), priceEach: Number(item.priceEach) })) }) });
-    const result = await response.json().catch(() => null) as { error?: string } | null;
-    setBusy(false);
-    setMessage(response.ok ? selected ? `Check #${selected.id} corrected and marked Edited.` : "New sales entry saved." : result?.error ?? "Could not save this check.");
-    if (response.ok) {
-      const origin = editorOrigin;
-      setSelected(null);
-      setNewCheck(false);
-      router.refresh();
-      if (origin?.kind === "server-check") void loadServerChecks(origin.serverId, serverChecks[origin.serverId]?.page ?? 1);
+    const action = selected ? "correct_source_check" : "record_full_check";
+    const operationId = checkOperation.current ?? `ui-shift-${selected ? "correct" : "check"}-${crypto.randomUUID()}`;
+    checkOperation.current = operationId;
+    try {
+      const response = await fetch("/api/ops/commands", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ operation_id: operationId, action, actor_role: "shift_manager", expected_contest_id: data.contestSales?.contestId, confirm: false, payload: { ...(selected ? { checkId: selected.id } : {}), serverId: Number(serverId), openedAt: new Date(openedAt).toISOString(), partySize: Number(partySize), note, items: items.map((item) => ({ menuItemId: Number(item.menuItemId), qty: Number(item.qty), priceEach: Number(item.priceEach) })) } }) });
+      const result = await response.json().catch(() => null) as { operation?: { operation_id?: string }; error?: { message?: string } } | null;
+      setBusy(false); checkOperation.current = null;
+      setMessage(response.ok ? selected ? `Check #${selected.id} corrected and marked Edited. Receipt ${result?.operation?.operation_id}.` : `New sales entry saved. Receipt ${result?.operation?.operation_id}.` : result?.error?.message ?? "Could not save this check.");
+      if (response.ok) {
+        const origin = editorOrigin;
+        setSelected(null);
+        setNewCheck(false);
+        router.refresh();
+        if (origin?.kind === "server-check") void loadServerChecks(origin.serverId, serverChecks[origin.serverId]?.page ?? 1);
+      }
+    } catch {
+      setBusy(false);
+      setMessage("Connection interrupted. Try again to reconcile the same check receipt.");
     }
   }
 
@@ -183,11 +204,19 @@ export function SalesDataManager({ data }: { data: Data }) {
     if (!target) return;
     setContestBusy(true);
     setContestMessage("");
-    const response = await fetch("/api/sales-data/contest-score", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ serverId, menuItemId: target.menuItemId, quantity }) });
-    const result = await response.json().catch(() => null) as { error?: string } | null;
-    setContestBusy(false);
-    setContestMessage(response.ok ? `Added ${quantity} ${target.name} sale${quantity === 1 ? "" : "s"} to the live contest.` : result?.error ?? "Could not add contest sales.");
-    if (response.ok) { setContestQuantity("1"); router.refresh(); }
+    const operationId = contestOperation.current ?? `ui-shift-tally-${crypto.randomUUID()}`;
+    contestOperation.current = operationId;
+    try {
+      const response = await fetch("/api/ops/commands", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ operation_id: operationId, action: "record_contest_sales", actor_role: "shift_manager", expected_contest_id: data.contestSales?.contestId, confirm: false, payload: { serverId, menuItemId: target.menuItemId, quantity } }) });
+      const result = await response.json().catch(() => null) as { operation?: { operation_id?: string }; error?: { message?: string } } | null;
+      setContestBusy(false);
+      contestOperation.current = null;
+      setContestMessage(response.ok ? `Added ${quantity} ${target.name} sale${quantity === 1 ? "" : "s"} to the live contest. Receipt ${result?.operation?.operation_id}.` : result?.error?.message ?? "Could not add contest sales.");
+      if (response.ok) { setContestQuantity("1"); router.refresh(); }
+    } catch {
+      setContestBusy(false);
+      setContestMessage("Connection interrupted. Try again to reconcile the same contest-sales receipt.");
+    }
   }
 
   const editor = (selected || newCheck) && <div className="inline-editor">

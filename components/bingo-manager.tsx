@@ -18,12 +18,13 @@ type LineGesture = {
   initial: Set<number>;
 };
 
-export function BingoManager({ data }: { data: BingoPageData }) {
+export function BingoManager({ data, initialServerId }: { data: BingoPageData; initialServerId?: number }) {
   const router = useRouter();
-  const [serverId, setServerId] = useState(data.cards[0]?.serverId ?? 0);
+  const [serverId, setServerId] = useState(data.cards.some((card) => card.serverId === initialServerId) ? initialServerId as number : data.cards[0]?.serverId ?? 0);
   const [marked, setMarked] = useState<Set<number>>(new Set([12]));
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
+  const submissionOperation = useRef<string | null>(null);
   const gesture = useRef<LineGesture | null>(null);
   const card = data.cards.find((candidate) => candidate.serverId === serverId) ?? data.cards[0];
 
@@ -92,12 +93,21 @@ export function BingoManager({ data }: { data: BingoPageData }) {
 
   async function submit() {
     setSaving(true); setMessage("");
-    const response = await fetch("/api/bingo/submissions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ cardId: card.id, markedCells: [...marked] }) });
-    const result = await response.json().catch(() => null) as { dailyWin?: boolean; linesCompleted?: number; entriesAwarded?: number } | null;
-    setSaving(false);
-    if (!response.ok || !result) { setMessage("Could not log this card."); return; }
-    setMessage(result.dailyWin ? `Daily win logged — ${result.linesCompleted} line${result.linesCompleted === 1 ? "" : "s"} complete${result.entriesAwarded ? `, ${result.entriesAwarded} wheel entr${result.entriesAwarded === 1 ? "y" : "ies"} added` : ""}.` : "Card logged — no completed line yet.");
-    setMarked(new Set([12])); router.refresh();
+    const operationId = submissionOperation.current ?? `ui-shift-bingo-${crypto.randomUUID()}`;
+    submissionOperation.current = operationId;
+    try {
+      const response = await fetch("/api/ops/commands", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ operation_id: operationId, action: "record_bingo_submission", actor_role: "shift_manager", expected_contest_id: data.contest.id, confirm: false, payload: { cardId: card.id, markedCells: [...marked] } }) });
+      const result = await response.json().catch(() => null) as { operation?: { operation_id?: string }; result?: { dailyWin?: boolean; linesCompleted?: number; entriesAwarded?: number }; error?: { message?: string } } | null;
+      setSaving(false);
+      submissionOperation.current = null;
+      if (!response.ok || !result?.result) { setMessage(result?.error?.message ?? "Could not log this card."); return; }
+      const submission = result.result;
+      setMessage(submission.dailyWin ? `Daily win logged — ${submission.linesCompleted} line${submission.linesCompleted === 1 ? "" : "s"} complete${submission.entriesAwarded ? `, ${submission.entriesAwarded} wheel entr${submission.entriesAwarded === 1 ? "y" : "ies"} added` : ""}. Receipt ${result.operation?.operation_id}.` : `Card logged — no completed line yet. Receipt ${result.operation?.operation_id}.`);
+      setMarked(new Set([12])); router.refresh();
+    } catch {
+      setSaving(false);
+      setMessage("Connection interrupted. Try again to reconcile the same Bingo receipt.");
+    }
   }
 
   return <section className="bingo-workspace">

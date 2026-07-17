@@ -121,6 +121,17 @@ CREATE TABLE game_awards (
   UNIQUE(contest_id, game_id, place)
 );
 
+CREATE TABLE operation_receipts (
+  operation_id TEXT PRIMARY KEY,
+  action TEXT NOT NULL,
+  actor_role TEXT NOT NULL,
+  expected_contest_id INTEGER,
+  request_hash TEXT NOT NULL,
+  status TEXT NOT NULL CHECK(status IN ('applied', 'already_applied')),
+  response_json TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+
 CREATE INDEX checks_server_opened_at_idx ON checks(server_id, opened_at);
 CREATE INDEX check_items_check_idx ON check_items(check_id);
 CREATE INDEX sales_entry_audit_source_idx ON sales_entry_audit(source_type);
@@ -130,3 +141,5 @@ CREATE INDEX contest_score_entries_contest_server_idx ON contest_score_entries(c
 CREATE UNIQUE INDEX bingo_daily_winning_card_idx ON bingo_submissions(card_id, date(submitted_at)) WHERE lines_completed >= 1;
 CREATE INDEX game_awards_contest_server_idx ON game_awards(contest_id, server_id);
 CREATE INDEX bingo_cards_contest_server_idx ON bingo_cards(contest_id, server_id);
+CREATE INDEX operation_receipts_created_at_idx ON operation_receipts(created_at DESC);
+CREATE INDEX operation_receipts_role_created_at_idx ON operation_receipts(actor_role, created_at DESC);

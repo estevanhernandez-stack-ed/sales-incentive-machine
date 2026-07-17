@@ -7,3 +7,13 @@ required = false
 default_tools_approval_mode = "writes"
 startup_timeout_sec = 10
 tool_timeout_sec = 30
+
+[mcp_servers.sim_ops]
+command = "node"
+args = ["mcp/sim-ops-server.mjs"]
+cwd = "."
+enabled = true
+required = false
+default_tools_approval_mode = "writes"
+startup_timeout_sec = 10
+tool_timeout_sec = 30

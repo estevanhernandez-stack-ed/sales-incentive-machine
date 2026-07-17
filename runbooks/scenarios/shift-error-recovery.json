@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "id": "shift-error-recovery",
+  "title": "Shift manager handles a mistaken contest tally",
+  "role": "shift_manager",
+  "runbook_id": "shift-manager",
+  "purpose": "Expose the current recovery experience for an append-only live tally entered with the wrong positive quantity.",
+  "starting_state": ["Use a freshly seeded disposable database", "The active contest includes an item-count target", "No prior test tally exists for the assigned server"],
+  "fixtures": { "item_name": "Ember Corn Cups", "server_position": 2, "intended_quantity": 2, "entered_quantity": 7 },
+  "assignments": ["Intentionally submit the entered quantity once", "Search only documented UI and role-safe tools for correction", "Do not add a negative offset, edit SQL, or patch SIM", "Record the exact recovery path or missing capability for manager handoff"],
+  "required_steps": ["SM-01", "SM-02", "SM-03", "SM-04", "SM-05", "SM-10", "SM-11"],
+  "success_conditions": ["The original receipt is preserved", "No negative or fabricated event is created", "The recovery observation includes server, item, intended and entered quantities, operation ID, evidence, and impact", "The run reports a blocker if no safe recovery exists"],
+  "intentional_discoveries": ["Whether the product offers a safe audited correction path for contest tallies"]
+}

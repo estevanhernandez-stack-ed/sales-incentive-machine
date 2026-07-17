@@ -10,7 +10,7 @@ Run `/feedback` in Codex at the end of each significant session and paste the Se
 |---|---|---|
 | 2026-07-13–14 | ⭐ 019f5e37-0446-70b2-bbe3-a7f63379f3a6 | Core SIM build: dashboard, bingo, prize wheel, contest designer, sales games, and editable/importable sales data. |
 | 2026-07-13–14 | 019f5e10-6744-7fb3-8288-30416c41252e | Initial SIM scaffold, deterministic SQLite seed, schema, and metric-query foundation. |
-| 2026-07-14 | 019f634d-4c75-72d3-8c10-d1f2df214677 | Restaurant-operations polish: compact app framing, manual contest/game setup, server sales scores, Bingo line gestures, and expanded prize-wheel contenders. |
+| 2026-07-14–17 | 019f634d-4c75-72d3-8c10-d1f2df214677 | Restaurant-operations polish plus canonical manager runbooks, safe local operations API/MCP, disposable agent rehearsals, screenshot evidence, and product-discovery scaffolds. |
 
 ## Checklist
 
