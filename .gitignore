@@ -7,5 +7,6 @@ artifacts/runbook-runs/
 demo/out/
 demo/shots/
 demo/voiceover/
+demo/gallery/
 .env.local
 .env*.local
