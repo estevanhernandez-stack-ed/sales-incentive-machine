@@ -1,6 +1,9 @@
 {
   "name": "SIM: Sales Incentive Machine",
   "image": "mcr.microsoft.com/devcontainers/javascript-node:1-22-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/sshd:1": {}
+  },
   "postCreateCommand": "npm install && npm run seed",
   "postAttachCommand": {
     "server": "npm run dev"
