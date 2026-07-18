@@ -16,10 +16,10 @@ Run `/feedback` in Codex at the end of each significant session and paste the Se
 ## Checklist
 
 - [ ] Devpost registration
-- [ ] Free credits requested (gate: Fri 7/17, 12:00 PM PT)
-- [ ] Codex installed + signed in
-- [ ] Public GitHub repo + license
-- [ ] README with setup + sample data
-- [ ] Demo video (<3 min, public YouTube)
+- [ ] Free credits requested (gate: Fri 7/17, 12:00 PM PT — window passed)
+- [x] Codex installed + signed in
+- [x] Public GitHub repo + license — https://github.com/estevanhernandez-stack-ed/sales-incentive-machine (MIT)
+- [x] README with setup + sample data
+- [ ] Demo video (<3 min, public YouTube) — 2:30 voiced master rendered at demo/out/sim-demo.mp4, awaiting YouTube upload
 - [x] ⭐ core-functionality session ID confirmed
 - [ ] Submitted (target: by noon PT Tue 7/21)
