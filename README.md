@@ -4,6 +4,8 @@ SIM is a local-first restaurant sales-contest workspace. Managers configure goal
 
 Built for OpenAI Build Week in Codex with GPT-5.6. [Watch the demo](https://www.youtube.com/watch?v=XFfKLfKBDHE).
 
+**Judging this?** Start with [JUDGES.md](./JUDGES.md) for a five-minute guided tour.
+
 All included restaurant, server, menu, check, and contest data is fictional.
 
 ## How Codex and GPT-5.6 built this
