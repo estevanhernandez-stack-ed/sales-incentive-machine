@@ -52,7 +52,7 @@
       "type": "clip",
       "src": "demo/shots/02-zero-config.webm",
       "trim_start": 0.4,
-      "narration": "SIM starts with three commands: install, seed, and run.\nThe deterministic fictional dataset makes every screen useful immediately, with no external service or account.",
+      "narration": "SIM starts with three commands: install, seed, and run.\nSample data makes every screen useful instantly, and managers import their own sales through the shared spreadsheet schema.",
       "effect": "slide_up",
       "duration": 12,
       "capture": {
@@ -160,6 +160,28 @@
         "route": "/data?server=1&panel=contest",
         "source_asset": "artifacts/runbook-runs/20260718T145233Z-shift-live-entry-83e577/screenshots/03-contest-tally-ready.png",
         "instructions": "Show the quantity-only contest tally and automatic total, then move to Import a sheet and the current-data correction controls. Do not submit another runbook operation and do not import real data."
+      }
+    },
+    {
+      "id": "09-future-features",
+      "title": "What ships next",
+      "type": "still",
+      "src": "demo/shots/09-future-features.png",
+      "narration": "Next up: remote sales entry, a simple phone panel for shift managers that feeds the dashboard live.\nThen reconciliation before finalizing, visible wheel odds, and role-guarded awards, all surfaced by real operator rehearsals.",
+      "effect": "slide_up",
+      "duration": 15,
+      "capture": {
+        "status": "generated_title_card",
+        "card": {
+          "eyebrow": "Roadmap",
+          "title": "What ships next",
+          "lines": [
+            "Remote sales entry: a phone panel for shift managers, one simple HTML connection to the live dashboard.",
+            "Pre-finalization reconciliation and wheel provenance with visible odds.",
+            "Role-guarded lock and award controls, surfaced by live operator rehearsals."
+          ]
+        },
+        "instructions": "Generate a 1920-by-1080 SIM-branded roadmap card from the card fields."
       }
     },
     {

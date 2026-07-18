@@ -1,6 +1,6 @@
 # SIM demo video production script
 
-Target runtime: **2:30** at 1920×1080, 30fps. The edit uses hard cuts and one `slide_up` entrance family throughout. All people, menu items, contests, and sales records shown are fictional seeded data.
+Target runtime: **2:45** at 1920×1080, 30fps. The edit uses hard cuts and one `slide_up` entrance family throughout. All people, menu items, contests, and sales records shown are fictional seeded data.
 
 ## Scene 1 — Hook (0:00–0:10)
 
@@ -24,7 +24,7 @@ SIM replaces the guesswork with one auditable workspace.
 
 SIM starts with three commands: install, seed, and run.
 
-The deterministic fictional dataset makes every screen useful immediately, with no external service or account.
+Sample data makes every screen useful instantly, and managers import their own sales through the shared spreadsheet schema.
 
 **Suggested overlays:** `npm install` · `npm run seed` · `npm run dev`
 
@@ -130,7 +130,21 @@ For complete records, SIM also imports CSVs and preserves corrections in an audi
 
 **New capture required:** Do not submit another runbook operation and do not import real data.
 
-## Scene 9 — Close (2:19–2:30)
+## Scene 9 — Roadmap (2:19–2:34)
+
+**Picture:** SIM-branded roadmap card, "What ships next."
+
+**Narration:**
+
+Next up: remote sales entry, a simple phone panel for shift managers that feeds the dashboard live.
+
+Then reconciliation before finalizing, visible wheel odds, and role-guarded awards, all surfaced by real operator rehearsals.
+
+**Card lines:** Remote sales entry (phone panel, simple HTML connection to the live dashboard) · Pre-finalization reconciliation and wheel provenance with visible odds · Role-guarded lock and award controls.
+
+**Suggested overlay:** `What ships next`
+
+## Scene 10 — Close (2:34–2:45)
 
 **Picture:** SIM end card with product name, Build Week attribution, and verified public repository URL.
 

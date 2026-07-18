@@ -234,7 +234,9 @@ async function main() {
         await mkdir(path.dirname(output), { recursive: true });
         const context = await browser.newContext({ viewport: { width: 1920, height: 1080 } });
         const page = await context.newPage();
-        await showCard(page, "Sales Incentive Machine", "Built in Codex with <span class=\"accent\">GPT-5.6</span>", ["One connected, accountable weekly game.", "Source and reproducible demo pipeline in the repository.", `<code>github.com/estevanhernandez-stack-ed/sales-incentive-machine</code>`]);
+        const card = scene.capture.card;
+        if (card) await showCard(page, card.eyebrow ?? "Sales Incentive Machine", card.title ?? "", card.lines ?? []);
+        else await showCard(page, "Sales Incentive Machine", "Built in Codex with <span class=\"accent\">GPT-5.6</span>", ["One connected, accountable weekly game.", "Source and reproducible demo pipeline in the repository.", `<code>github.com/estevanhernandez-stack-ed/sales-incentive-machine</code>`]);
         await page.screenshot({ path: output });
         await context.close();
         console.log(`Generated title card ${path.relative(repoRoot, output)}`);
