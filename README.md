@@ -6,6 +6,29 @@ Built for OpenAI Build Week in Codex with GPT-5.6. [Watch the demo](https://www.
 
 All included restaurant, server, menu, check, and contest data is fictional.
 
+## How Codex and GPT-5.6 built this
+
+**Codex wrote the product.** Every feature in this repository was built in Codex sessions against a written specification (`docs/superpowers/specs/2026-07-13-sim-design.md`), which defined the data model, exact metric formulas, contest config shape, acceptance criteria, and an explicit cut list. Session IDs for each build thread are logged in [SUBMISSION.md](./SUBMISSION.md). The model was GPT-5.6 at high reasoning effort throughout.
+
+**GPT-5.6 is also a runtime dependency.** The Contest Designer (`app/api/contest-designer/route.ts`) is the product's AI surface: a manager describes the contest they want in plain words, and GPT-5.6 returns a complete contest configuration through the Responses API using strict `json_schema` structured output. The response is then validated locally against real menu IDs and contest rules. A validation failure feeds the specific error back into a second attempt; if that also fails, or if no key is present, the app loads a versioned sample config instead of erroring. The AI writes the contest, but the app decides what is valid.
+
+**Codex agents operated the app through MCP.** The repo ships two local Model Context Protocol servers so a Codex agent could drive the product the way a real operator would:
+
+- `sim_boh_pos` records fully itemized fictional closed checks as a synthetic point-of-sale feed.
+- `sim_ops` reads runbooks and current state, previews irreversible operations before committing them, executes role-aware idempotent operations, and returns receipts plus screenshot paths.
+
+Paired with the agent-executable runbooks in `runbooks/`, this let Codex rehearse the full Contest Manager and Shift Manager workflows against a disposable copy of the database, then hand back a run package of reconciled receipts and screenshot evidence that `npm run runbook:verify` checks for completeness. Testing the app through its actual operator workflows, not only through unit tests.
+
+**Codex built the demo pipeline too.** The submission video is reproducible from this repository: `demo/manifest.json` is the scene plan, `scripts/demo-video/capture.mjs` drives Playwright against the running app, and `scripts/demo-video/build.mjs` renders the master with FFmpeg. The prompt that specified that pipeline is versioned at `docs/prompts/demo-video.md`, next to the code it produced.
+
+## Run it without installing anything
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/estevanhernandez-stack-ed/sales-incentive-machine)
+
+Click the badge. The container installs dependencies, seeds the deterministic fictional database, starts the dev server, and opens SIM in a browser tab. No key, no account, no local setup.
+
+There is no hosted public instance by design: SIM is local-first, writes to a SQLite file, and ships with a deterministic seed so every run starts from the same known state.
+
 ## Start locally
 
 ```powershell
