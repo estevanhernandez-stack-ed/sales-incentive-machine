@@ -1,0 +1,179 @@
+{
+  "version": 1,
+  "title": "SIM: Sales Incentive Machine — OpenAI Build Week Demo",
+  "description": "A reproducible 2:30 product demo assembled from runbook evidence and focused live captures.",
+  "output": {
+    "path": "demo/out/sim-demo.mp4",
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "video_codec": "libx264",
+    "preset": "medium",
+    "crf": 20,
+    "pixel_format": "yuv420p",
+    "audio_codec": "aac",
+    "audio_bitrate": "160k",
+    "audio_sample_rate": 44100,
+    "audio_channels": 2,
+    "faststart": true
+  },
+  "voiceover": {
+    "directory": "demo/voiceover",
+    "model_env": "OPENAI_TTS_MODEL",
+    "default_model": "gpt-4o-mini-tts",
+    "voice": "alloy",
+    "missing_key_behavior": "silent"
+  },
+  "visual_style": {
+    "effect_family": "slide_up",
+    "entrance_seconds": 0.45,
+    "content_scale": 0.92,
+    "background": "blurred_self_fill",
+    "transitions": "hard_cuts"
+  },
+  "scenes": [
+    {
+      "id": "01-hook",
+      "title": "From whiteboard guesswork to one workspace",
+      "type": "still",
+      "src": "demo/shots/01-hook-dashboard.png",
+      "narration": "Restaurant sales contests still live on whiteboards, manual tallies, and whoever remembers what changed.\nSIM replaces the guesswork with one auditable workspace.",
+      "effect": "slide_up",
+      "duration": 10,
+      "capture": {
+        "status": "reuse_runbook_still",
+        "source_asset": "artifacts/runbook-runs/20260718T152042Z-manager-item-contest-02fa54/screenshots/07-activated-dashboard.png",
+        "instructions": "Copy without altering product content; frame the active Corn Cup Countdown card and the top of the leaderboard."
+      }
+    },
+    {
+      "id": "02-zero-config",
+      "title": "Three-command local start",
+      "type": "clip",
+      "src": "demo/shots/02-zero-config.webm",
+      "trim_start": 0.4,
+      "narration": "SIM starts with three commands: install, seed, and run.\nThe deterministic fictional dataset makes every screen useful immediately, with no external service or account.",
+      "effect": "slide_up",
+      "duration": 12,
+      "capture": {
+        "status": "new_live_clip",
+        "route": "/",
+        "instructions": "Record a clean terminal running npm install, npm run seed, and npm run dev, then hard-cut within the clip to the first successful dashboard load. Hide usernames, filesystem paths, environment values, and all secrets."
+      }
+    },
+    {
+      "id": "03-dashboard",
+      "title": "Live performance at a glance",
+      "type": "clip",
+      "src": "demo/shots/03-dashboard-tour.webm",
+      "trim_start": 1.75,
+      "narration": "One dashboard ranks every server across live sales metrics, contest goals, and daily Bingo wins.\nManagers can switch the performance lens while the active prize, targets, last winner, and deadline stay visible.\nEvery downstream game reads the same sales records.",
+      "effect": "slide_up",
+      "duration": 21,
+      "capture": {
+        "status": "new_live_clip",
+        "route": "/",
+        "source_asset": "artifacts/runbook-runs/20260718T152042Z-manager-item-contest-02fa54/screenshots/07-activated-dashboard.png",
+        "instructions": "Begin on the Corn Cup Countdown hero, then change the performance metric once and make one slow vertical move through the leaderboard. Use the runbook still as the framing reference or silent fallback."
+      }
+    },
+    {
+      "id": "04-ai-contest-designer",
+      "title": "GPT-5.6 contest design, validated locally",
+      "type": "clip",
+      "src": "demo/shots/04-ai-designer.webm",
+      "trim_start": 1.75,
+      "narration": "With an API key, GPT-5.6 receives the manager goal, menu, and four-week performance context.\nStrict JSON schema constrains the response, then local validation checks every menu ID and contest rule.\nValidation failure retries once. Without a key, or after two failed attempts, SIM loads its versioned sample config.\nThe API-backed draft is reviewed and activated through manual Contest setup.",
+      "effect": "slide_up",
+      "duration": 32,
+      "capture": {
+        "status": "new_live_clip_required",
+        "route": "/contest",
+        "source_asset": "artifacts/runbook-runs/20260718T152042Z-manager-item-contest-02fa54/screenshots/05-gameboard-setup.png",
+        "instructions": "Truthfully demonstrate the API-backed capability: show a sanitized terminal request containing only a fake manager goal and the GPT-5.6 strict-schema response label, then cut to the populated manual Contest setup UI. Do not imply the current UI contains a prompt field. Show the keyless sample label in a separate sanitized request or caption; never reveal a key."
+      }
+    },
+    {
+      "id": "05-sales-games",
+      "title": "Live races and shared goals",
+      "type": "still",
+      "src": "demo/shots/05-sales-games.png",
+      "narration": "Sales games turn the same live totals into a visible floor race and a shared goal board.\nFinal awards become wheel entries, keeping every contest mechanic connected and auditable.",
+      "effect": "slide_up",
+      "duration": 15,
+      "capture": {
+        "status": "reuse_runbook_still",
+        "source_asset": "artifacts/runbook-runs/20260718T152042Z-manager-item-contest-02fa54/screenshots/12-final-gameboards.png",
+        "instructions": "Create a 16:9 crop from the top of the final Gameboards evidence, retaining both the Final race result and the beginning of the awarded goal board. Do not stretch the source."
+      }
+    },
+    {
+      "id": "06-server-bingo",
+      "title": "Bingo from card to daily win",
+      "type": "clip",
+      "src": "demo/shots/06-server-bingo.webm",
+      "trim_start": 1.75,
+      "narration": "Every server gets a randomized five-by-five card drawn from the active contest's menu pool.\nManagers print one clean card per page, then log completed lines and daily wins when cards return.",
+      "effect": "slide_up",
+      "duration": 16,
+      "capture": {
+        "status": "new_live_clip",
+        "route": "/bingo?server=1",
+        "source_assets": [
+          "artifacts/runbook-runs/20260718T152042Z-manager-item-contest-02fa54/screenshots/08-bingo-ready.png",
+          "artifacts/runbook-runs/20260718T145233Z-shift-live-entry-83e577/screenshots/06-bingo-card-marked.png",
+          "artifacts/runbook-runs/20260718T145233Z-shift-live-entry-83e577/screenshots/07-bingo-submission.png"
+        ],
+        "instructions": "Record one quick row-mark gesture, show the completed-line state, then open print preview long enough to prove the one-card-per-page layout. Use only fictional seeded names and menu items."
+      }
+    },
+    {
+      "id": "07-prize-wheel",
+      "title": "One auditable drawing",
+      "type": "clip",
+      "src": "demo/shots/07-prize-wheel.webm",
+      "trim_start": 1.75,
+      "narration": "Before drawing, the contender panel explains goal, Bingo, and game entries for each server.\nOne confirmed draw saves an immutable snapshot first; only then does the wheel animate toward the recorded winner.\nThe presentation stays exciting without letting animation decide the result.",
+      "effect": "slide_up",
+      "duration": 22,
+      "capture": {
+        "status": "new_live_clip_required",
+        "route": "/wheel?server=12",
+        "source_assets": [
+          "artifacts/runbook-runs/20260718T152042Z-manager-item-contest-02fa54/screenshots/13-contender-detail.png",
+          "artifacts/runbook-runs/20260718T152042Z-manager-item-contest-02fa54/screenshots/14-prize-winner.png"
+        ],
+        "instructions": "Use a fresh disposable drawing state. Begin with one contender expanded, enter TV mode if framing improves, confirm exactly once, retain the full five-second spin, and hold on the persisted winner. Never reset or redraw the completed runbook database."
+      }
+    },
+    {
+      "id": "08-sales-data",
+      "title": "Fast entry with an audit trail",
+      "type": "clip",
+      "src": "demo/shots/08-sales-data.webm",
+      "trim_start": 1.75,
+      "narration": "Shift leaders add contest-only quantities without inventing check data.\nFor complete records, SIM also imports CSVs and preserves corrections in an audit trail.",
+      "effect": "slide_up",
+      "duration": 11,
+      "capture": {
+        "status": "new_live_clip",
+        "route": "/data?server=1&panel=contest",
+        "source_asset": "artifacts/runbook-runs/20260718T145233Z-shift-live-entry-83e577/screenshots/03-contest-tally-ready.png",
+        "instructions": "Show the quantity-only contest tally and automatic total, then move to Import a sheet and the current-data correction controls. Do not submit another runbook operation and do not import real data."
+      }
+    },
+    {
+      "id": "09-close",
+      "title": "Built in Codex with GPT-5.6",
+      "type": "still",
+      "src": "demo/shots/09-close.png",
+      "narration": "SIM turns restaurant sales into one connected, accountable weekly game.\nBuilt in Codex with GPT-5.6; source and the reproducible demo pipeline are in the repository.",
+      "effect": "slide_up",
+      "duration": 11,
+      "capture": {
+        "status": "generated_title_card",
+        "instructions": "Create a 1920-by-1080 SIM-branded end card reading Built in Codex with GPT-5.6. Add the verified public repository URL only after it is supplied; do not invent one."
+      }
+    }
+  ]
+}

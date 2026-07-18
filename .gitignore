@@ -4,5 +4,8 @@ node_modules/
 *.tsbuildinfo
 data/*.db
 artifacts/runbook-runs/
+demo/out/
+demo/shots/
+demo/voiceover/
 .env.local
 .env*.local
