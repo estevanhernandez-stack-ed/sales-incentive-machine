@@ -2,7 +2,7 @@
 
 SIM is a local-first restaurant sales-contest workspace. Managers configure goals and prizes, shift leaders enter live contest quantities and returned Bingo cards, and the team can present gameboards and one auditable prize drawing.
 
-Built for OpenAI Build Week in Codex with GPT-5.6.
+Built for OpenAI Build Week in Codex with GPT-5.6. [Watch the demo](https://www.youtube.com/watch?v=XFfKLfKBDHE).
 
 All included restaurant, server, menu, check, and contest data is fictional.
 
