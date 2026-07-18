@@ -2,6 +2,8 @@
 
 SIM is a local-first restaurant sales-contest workspace. Managers configure goals and prizes, shift leaders enter live contest quantities and returned Bingo cards, and the team can present gameboards and one auditable prize drawing.
 
+Built for OpenAI Build Week in Codex with GPT-5.6.
+
 All included restaurant, server, menu, check, and contest data is fictional.
 
 ## Start locally
@@ -13,6 +15,20 @@ npm run dev
 ```
 
 Open `http://127.0.0.1:3000`. No environment variable or OpenAI key is required. When no key is configured, Contest setup uses the versioned fallback contest.
+
+## Enable the live Contest Designer (optional)
+
+Create `.env.local` in the repo root:
+
+```
+OPENAI_API_KEY=sk-...
+```
+
+With a key set, Contest setup sends the manager's plain-words goal to GPT-5.6 (override with `OPENAI_MODEL`) under a strict JSON schema, retries once on validation failure, and still falls back to the versioned sample config if both attempts miss. Without a key, every feature stays fully demoable.
+
+## Demo video pipeline
+
+The submission video is reproducible from the repo: `demo/manifest.json` is the scene plan, `node scripts/demo-video/capture.mjs demo/manifest.json` captures footage from the running app, and `node scripts/demo-video/build.mjs demo/manifest.json` renders the master (ffmpeg required on PATH). The prompt that specified the pipeline is versioned at `docs/prompts/demo-video.md`.
 
 ## Operating guides
 
