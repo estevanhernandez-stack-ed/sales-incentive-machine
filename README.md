@@ -25,7 +25,9 @@ Paired with the agent-executable runbooks in `runbooks/`, this let Codex rehears
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/estevanhernandez-stack-ed/sales-incentive-machine)
 
-Click the badge. The container installs dependencies, seeds the deterministic fictional database, starts the dev server, and opens SIM in a browser tab. No key, no account, no local setup.
+Click the badge. The container installs dependencies, seeds the deterministic fictional database, starts the dev server, and opens SIM on the forwarded port 3000. No key, no account, no local setup.
+
+If the preview does not open on its own, run `npm run dev` in the Codespace terminal and open the forwarded port. Setup is already done by then; the database is seeded during container creation.
 
 There is no hosted public instance by design: SIM is local-first, writes to a SQLite file, and ships with a deterministic seed so every run starts from the same known state.
 
