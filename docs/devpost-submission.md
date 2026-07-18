@@ -56,6 +56,8 @@ The demo video is built the same way: `demo/manifest.json` is the scene plan, a 
 
 **Working across two AI tools.** Core functionality was built in Codex. I also kept a reviewer in the loop to audit completion claims against the written spec line by line. That division caught real things and kept "it runs" from being mistaken for "it is done."
 
+**I used all of it.** I went in on the Pro plan, took the $100 in Build Week credits, and spent every last one of them before the deadline. The agent rehearsals in particular are not cheap: driving a full manager workflow through MCP with screenshot evidence at every checkpoint burns real tokens. I would rather know exactly where the ceiling is than submit having left the tool half-explored.
+
 ### Accomplishments that I'm proud of
 
 The zero-config promise holds. Clone it, seed it, run it, and every feature is demoable in under a minute with no key and no account.
@@ -106,7 +108,13 @@ Notes if a longer form is wanted:
 https://github.com/estevanhernandez-stack-ed/sales-incentive-machine
 ```
 
-There is no hosted instance by design; the app is local-first and ships with a deterministic seed so anyone can run it in three commands.
+One-click run, no install required (judges can open this directly):
+
+```
+https://codespaces.new/estevanhernandez-stack-ed/sales-incentive-machine
+```
+
+There is no hosted public instance by design; the app is local-first, writes to SQLite, and ships with a deterministic seed so every run starts from the same known state. The Codespaces link installs, seeds, and starts it automatically.
 
 ## Video
 
