@@ -142,7 +142,7 @@ Built in Codex with GPT-5.6; source and the reproducible demo pipeline are in th
 
 **Suggested overlay:** `Built in Codex with GPT-5.6`
 
-**Production blocker:** No public repository remote is configured in this checkout. Replace `[PUBLIC_REPO_URL]` below and on the end card only after Estevan supplies or verifies it.
+**Resolved:** The public repository is live at https://github.com/estevanhernandez-stack-ed/sales-incentive-machine (verified pushed).
 
 ## YouTube package
 
@@ -158,7 +158,7 @@ The Contest Designer API uses GPT-5.6 structured output with a strict JSON schem
 
 Built in Codex with GPT-5.6 for OpenAI Build Week. All restaurant, employee, menu, contest, and sales data shown is fictional.
 
-Repository: [PUBLIC_REPO_URL]
+Repository: https://github.com/estevanhernandez-stack-ed/sales-incentive-machine
 
 Local start:
 
